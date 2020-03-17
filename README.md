@@ -1,5 +1,5 @@
 # CoronaVirus
-This project contains a Jupyter notebook that create some charts about the COVID19 spread in Italy.
+This project contains a Jupyter notebook that creates some charts about the COVID19 spread in Italy.
 
 The results are in this directory:
   - [images](./images)
