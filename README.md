@@ -11,7 +11,7 @@ code and decide if it it is correct or not.
 
 ## COVID-19 spread charts
 Char with a predictive model (a logistic function) fitted for the Italian data set:
-![Italy chart with comparative logistic model](./images/covid19_IT_with_logistic_model_chart.png)
+![Italy chart with comparative logistic model](./images/covid19_IT_with_logistic_model_chart.png?)
 
 ![Italy and Lombardy composite chart](./images/covid19_composed_chart.png)
 ![Italy chart](./images/covid19_chart.png)
