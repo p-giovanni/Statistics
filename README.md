@@ -4,6 +4,11 @@ This project contains a Jupyter notebook that creates some charts about the COVI
 The results are in this directory:
   - [images](./images)
 
+## Project status
+```diff
++ Completed
+```
+
 ## Disclaimer
 I do know very well Pandas, Matplotlib and I had a fairly good education in statistics but, as all the programmers, I do bugs.
 So beware, I have checked the results as carefully as I can but nevertheless do not take for granted my result, check by yourself my 
