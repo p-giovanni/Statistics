@@ -6,8 +6,13 @@ The results are in this directory:
 
 ## Project status
 ```diff
-+ Completed
+! Doing
 ```
+## Notebooks
+
+- [CoronaVirus](notebook/CoronaVirus.ipynb): produces the spread model chart and various other charts for Italian and Lombardy virus spread;
+- [CoronaVirus-SecondaryCharts](notebook/CoronaVirus-SecondaryCharts.ipynb): comparative charts on various datasets;
+- [GetDataFromGitHub](notebook/GetDataFromGitHub.ipynb): get the data for the Italian provices from GitHum. No charts since now;  
 
 ## Disclaimer
 I do know very well Pandas, Matplotlib and I had a fairly good education in statistics but, as all the programmers, I do bugs.
