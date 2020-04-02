@@ -1,6 +1,8 @@
 # CoronaVirus
 This project contains a Jupyter notebook that creates some charts about the COVID19 spread in Italy.
 
+The data sets are downloaded, as pdf file, from this site [www.salute.gov.it](http://www.salute.gov.it/portale/news/p3_2.html), transformed to a pandas dataframe and written in a csv file (see [csv data files](./data)).
+
 The results are in this directory:
   - [images](./images)
 
@@ -12,7 +14,7 @@ The results are in this directory:
 
 - [CoronaVirus](notebook/CoronaVirus.ipynb): produces the model chart and various other charts about the Italian and Lombardy COVID-19 virus spread;
 - [CoronaVirus-SecondaryCharts](notebook/CoronaVirus-SecondaryCharts.ipynb): comparative charts on various datasets;
-- [DataDownloader](notebook/DataDownloader.ipynb): get the data for the Italian provices from GitHum and other sources. No charts since now;  
+- [DataDownloader](notebook/DataDownloader.ipynb): download the datasets from [www.salute.gov.it](http://www.salute.gov.it/portale/news/p3_2_Mobile.html);  
 
 ## Disclaimer
 I do know very well Pandas, Matplotlib and I had a fairly good education in statistics but, as all the programmers, I do bugs.
