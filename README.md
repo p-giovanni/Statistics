@@ -23,7 +23,12 @@ code and decide if it it is correct or not.
 
 ## COVID-19 spread charts
 Chart with a predictive model (a logistic function) fitted for the Italian data set:
-![Italy chart with comparative logistic model](./images/covid19_IT_with_logistic_model_chart.png?)
+
+People hospitalized and in intensive care:
+![Hospitalized](./images/covid19_Hospedalized_IntensiveCare_deviceschart.png?)
+
+Number of daily infected/recovered and dead:
+![Daily chart](./images/covid19_differences_diagnostic_deviceschart.png?)
 
 Daily total figures about infected, recovered and deads:
 ![Italy chart](./images/covid19_daily_infected_chart.png?)
@@ -34,3 +39,4 @@ Chart with the virus spread in Italy as whole and the Lombardy region:
 Virus spread in Italy:
 ![Italy chart](./images/covid19_chart.png?)
 
+![Italy chart with comparative logistic model](./images/covid19_IT_with_logistic_model_chart.png?)
