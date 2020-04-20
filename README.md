@@ -39,4 +39,3 @@ Chart with the virus spread in Italy as whole and the Lombardy region:
 Virus spread in Italy:
 ![Italy chart](./images/covid19_chart.png?)
 
-![Italy chart with comparative logistic model](./images/covid19_IT_with_logistic_model_chart.png?)
