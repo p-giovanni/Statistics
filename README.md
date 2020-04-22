@@ -1,10 +1,21 @@
 # CoronaVirus
-This project contains a Jupyter notebook that creates some charts about the COVID19 spread in Italy.
+This project contains some Jupyter notebooks that create some charts about the COVID19 spread in Italy.
 
 The data sets are downloaded, as pdf file, from this site [www.salute.gov.it](http://www.salute.gov.it/portale/news/p3_2.html), transformed to a pandas dataframe and written in a csv file (see [csv data files](./data)).
 
 The results are in this directory:
   - [images](./images)
+
+A second data source, from [**Istat**](https://www.istat.it/) is the number of daily deaths registered in a set of Italian cities in the years:
+
+- 2020
+- 2019
+- 2018
+- ...
+
+This new data source allows the comparison of deaths, in the same period but in different years.
+
+See this chart: [weekly mortality rate](./images/MortalityRate-DailyDeaths.png).
 
 ## Project status
 ```diff
@@ -15,6 +26,7 @@ The results are in this directory:
 - [CoronaVirus](notebook/CoronaVirus.ipynb): produces the model chart and various other charts about the Italian and Lombardy COVID-19 virus spread;
 - [CoronaVirus-SecondaryCharts](notebook/CoronaVirus-SecondaryCharts.ipynb): comparative charts on various datasets;
 - [DataDownloader](notebook/DataDownloader.ipynb): download the datasets from [www.salute.gov.it](http://www.salute.gov.it/portale/news/p3_2_Mobile.html);  
+- [MortalitaGiornaliera](notebook/MortalitaGiornaliera.ipynb): comparative charts on the [Istat](https://www.istat.it/) daily deaths rate;
 
 ## Disclaimer
 I do know very well Pandas, Matplotlib and I had a fairly good education in statistics but, as all the programmers, I do bugs.
