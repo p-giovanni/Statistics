@@ -34,8 +34,13 @@ So beware, I have checked the results as carefully as I can but nevertheless do 
 code and decide if it it is correct or not.
 
 ## COVID-19 spread charts
-Chart with a predictive model (a logistic function) fitted for the Italian data set:
+The charts that follow are about the increased deaths due to the covid-19 spread. 
+The most interesting, in my opinion, is the chart that compares the total deaths in Italy in the years 2018,2019 and 2020. In this it is clear the disaster and the tragedy that my country is living in these months.
+![Hospitalized](./images/MortalityRate-DeathsByAgeClass.png?)
 
+
+
+### Virus spread charts examples
 People hospitalized and in intensive care:
 ![Hospitalized](./images/covid19_Hospedalized_IntensiveCare_deviceschart.png?)
 
