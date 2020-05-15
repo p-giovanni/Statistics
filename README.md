@@ -42,8 +42,10 @@ The most interesting one is, in my opinion, the chart that compares the total de
 
 ### Virus spread charts examples
 People hospitalized and in intensive care:
-![Hospitalized](./images/covid19_Hospedalized_IntensiveCare_deviceschart.png?)
+![Hospitalized](./images/covid19_Hospedalized_IntensiveCare_hospitalized.png?)
 
+Milan area COVID-19 spread:
+![Hospitalized](./images/Provincia-ProvinciaMilano.png?)
 
 Number of daily infected/recovered and dead:
 ![Daily chart](./images/covid19_differences_diagnostic_deviceschart.png?)
