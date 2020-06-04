@@ -61,3 +61,5 @@ Chart with the virus spread in Italy as whole and the Lombardy region:
 Virus spread in Italy:
 ![Italy chart](./images/covid19_chart.png?)
 
+A categorizzation of the Italian regions by infected ingrease and number of infected every 100000 people:
+![Region ranking chart](./images/RegionRanking.png?)
