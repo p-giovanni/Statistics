@@ -41,25 +41,8 @@ The most interesting one is, in my opinion, the chart that compares the total de
 
 
 ### Virus spread charts examples
-People hospitalized and in intensive care:
-![Hospitalized](./images/covid19_Hospedalized_IntensiveCare_hospitalized.png?)
+Lombardy virus spread chart:
+![Virus spread](./images/RegionWeekly-TotalInfected-Lombardia.png?)
+Lombardy intensive care chart:
+![Virus spread](./images/RegionWeekly-IntensiveCare-Lombardia.png?)
 
-
-Milan area COVID-19 spread:
-
-![Hospitalized](./images/Provincia-ProvinciaMilano.png?)
-
-Number of daily infected/recovered and dead:
-![Daily chart](./images/covid19_differences_diagnostic_deviceschart.png?)
-
-Daily total figures about infected, recovered and deads:
-![Italy chart](./images/covid19_daily_infected_chart.png?)
-
-Chart with the virus spread in Italy as whole and the Lombardy region:
-![Italy and Lombardy composite chart](./images/covid19_composed_chart.png?)
-
-Virus spread in Italy:
-![Italy chart](./images/covid19_chart.png?)
-
-A categorizzation of the Italian regions by infected ingrease and number of infected every 100000 people:
-![Region ranking chart](./images/RegionRanking.png?)
