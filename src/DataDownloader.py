@@ -20,7 +20,6 @@ import sys
 import logging
 from logging.handlers import RotatingFileHandler
 # ----------------------------------------
-temp_content_dir = os.path.join(os.sep, 'tmp')
 ok_statuses = [200, 201, 202]
 
 # ----------------------------------------
@@ -56,55 +55,46 @@ def init_logger(log_dir:str, file_name:str, log_level, std_out_log_level=logging
         logging.getLogger(_).setLevel(logging.CRITICAL)
 
 def get_web_file(url:str) -> Tuple[bool, Union[Exception, bytes]] :
-    """
-    
-    :param url: 
-    :return (rv, content):
-    """
-    print("get_web_file >>")
-    print("Url: {u}".format(u=url))
+    log = logging.getLogger('save_df_to_csv')
+    log.info("get_web_file >>")
+    log.info("Url: {u}".format(u=url))
     rv = False
     result_content:bytes = bytearray()
     try:
         result = requests.get(url)
         if result.status_code not in ok_statuses:
-            print("Get data failed. Received error code: {er}".format(er=str(result.status_code)))
+            log.info("Get data failed. Received error code: {er}".format(er=str(result.status_code)))
         else:
             result_content = result.content
     except Exception as ex:
-        print("get_web_file failed - {ex}".format(ex=ex))
+        log.error("get_web_file failed - {ex}".format(ex=ex))
         return (False, ex)
     else:
         rv = True
-    print("get_web_file ({rv}) <<".format(rv=rv))
+    log.info("get_web_file ({rv}) <<".format(rv=rv))
     return (rv, result_content)    
         
 def save_content_to_file(file_name:str, content:bytes) -> bool :
-    """
-    
-    :param file_name: 
-    :return rv:
-    """
+    log = logging.getLogger('data_downloader')
     rv = False
     try:
         with open(file_name, "wb") as fh:
             fh.write(content)
     except Exception as ex:
-        print("save_content_to_file failed - {ex}".format(ex=ex))
+        log.error("save_content_to_file failed - {ex}".format(ex=ex))
     else:
         rv = True
     return rv
    
 def pdf_to_dataframe(pdf_file_name:str) -> Tuple[bool, pd.DataFrame, dt.datetime]:
-    """
-    """
-    print("pdf_to_dataframe ({fn}) >>".format(fn=pdf_file_name))
+    log = logging.getLogger('data_downloader')
+    log.info("pdf_to_dataframe ({fn}) >>".format(fn=pdf_file_name))
     rv = False
     df = None
     report_date:dt.datetime = dt.datetime(1964,8,3,0,0)
     try:
         df = tabula.read_pdf(pdf_file_name, pages='all')
-        #print("Df list len: {l}".format(l=len(df)))
+        #log.info("Df list len: {l}".format(l=len(df)))
         
         csv_file = os.path.splitext(pdf_file_name)[0] + ".csv"
         tabula.convert_into(pdf_file_name, csv_file, output_format="csv", pages='all')
@@ -132,10 +122,10 @@ def pdf_to_dataframe(pdf_file_name:str) -> Tuple[bool, pd.DataFrame, dt.datetime
                         report_date_s = parts[0]
                         if parts[0][0] == "\"":
                             report_date_s = parts[0][1:]
-                        #print(report_date)
+                        #log.info(report_date)
                         rv, report_date_rv = translate_to_date(report_date_s.split(" "))
                         if rv == False:
-                            print("Error in date translation.")
+                            log.error("Error in date translation.")
                             return (False, df, report_date)
                         else:
                             report_date = cast(dt.datetime, report_date_rv)
@@ -143,18 +133,19 @@ def pdf_to_dataframe(pdf_file_name:str) -> Tuple[bool, pd.DataFrame, dt.datetime
                     parts = line.split(" ")
                     if len(parts) > 1:
                         report_date = dt.datetime.strptime(parts[1], '%d/%m/%Y')
-                        print("RDate: {rd}".format(rd=report_date))
+                        log.info("RDate: {rd}".format(rd=report_date))
         
         df = pd.DataFrame([line.split(",") for line in list_reg])
         rv = True
         
     except Exception as ex:
-        print("pdf_to_dataframe failed - {ex}".format(ex=ex))
-    print("pdf_to_dataframe (rv={rv} - report_date={rd}) <<".format(rv=rv, rd=report_date))
+        log.info("pdf_to_dataframe failed - {ex}".format(ex=ex))
+    log.info("pdf_to_dataframe (rv={rv} - report_date={rd}) <<".format(rv=rv, rd=report_date))
     return (rv, df, report_date)
 
 def translate_to_date(report_date:List[str])-> Tuple[bool, Union[Exception, dt.datetime]]:
-    #print("translate_to_date {p} >>".format(p=str(dt)))
+    #log.info("translate_to_date {p} >>".format(p=str(dt)))
+    log = logging.getLogger('data_downloader')
     rv = False
     date = None
     months_names = {
@@ -177,32 +168,26 @@ def translate_to_date(report_date:List[str])-> Tuple[bool, Union[Exception, dt.d
             year = report_date[2]
             month = months_names.get(report_date[1].lower())
             if month is not None:
-                #print("Dt: {d}/{m}/{y}".format(d=day,m=month,y=year))
+                #log.info("Dt: {d}/{m}/{y}".format(d=day,m=month,y=year))
                 date = dt.datetime(year=int(year), month=int(month), day=int(day))
                 rv = True
             else:
                 ex = Exception("Unknown month: {m}".format(m=report_date[1]))
-                print("Error in date translation - {e}".format(e=ex))
+                log.error("Error in date translation - {e}".format(e=ex))
                 return (False, ex)
         except Exception as ex:
-            print("Exception - {e}".format(e=ex))
+            log.error("Exception - {e}".format(e=ex))
             return (False, ex)
     else:
         exc = Exception("Wrong format: {dt}".format(dt=str(dt)))
-        print("Error in date translation - {e}".format(e=exc))
+        log.error("Error in date translation - {e}".format(e=exc))
         return (False, exc)
-    #print("translate_to_date rv:{rv} - dt:{dt} <<".format(rv=rv,dt=str(date)))
+    #log.info("translate_to_date rv:{rv} - dt:{dt} <<".format(rv=rv,dt=str(date)))
     return (rv, date)
     
 def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str="v1") -> Tuple[bool, Any]:
-    """
-    
-    :param df: 
-    :param repord_date:
-    :pdf_version: valid values are v1, v2, v3, v4, v5, v6;
-    :return (rv, df_region):
-    """
-    print("refactor_region_df ({ver} - {dt}) >>".format(dt=report_date,ver=pdf_version))
+    log = logging.getLogger('data_downloader')
+    log.info("refactor_region_df ({ver} - {dt}) >>".format(dt=report_date,ver=pdf_version))
     rv = False
     df_res = None
     try:
@@ -266,7 +251,7 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
             df_res["INCREMENTO TAMPONI"] = np.nan
 
         elif pdf_version in ["v4"]:
-            print("Columns num: {n}".format(n=len(df_res.columns)))
+            log.info("Columns num: {n}".format(n=len(df_res.columns)))
             if len(df_res.columns) == 11:
                 df.drop([10], axis=1, inplace=True)
             df_res.rename(columns={df_res.columns[ 0]: "Regione"
@@ -310,7 +295,7 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
   
         else:
             ex = Exception("Unknown pdf version: {pv}".format(pv=pdf_version))
-            print("Error - {ex}".format(ex=ex))
+            log.error("Error - {ex}".format(ex=ex))
             rv = False
             df_res = ex
         
@@ -318,14 +303,15 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
         rv = True  
         
     except Exception as ex:
-        print("refactor_region_df failed - {ex}".format(ex=ex))
+        log.error("refactor_region_df failed - {ex}".format(ex=ex))
         rv = False
         df_res = ex
-    print("refactor_region_df ({rv}) <<".format(rv=rv))
+    log.info("refactor_region_df ({rv}) <<".format(rv=rv))
     return (rv, df_res)
 
 def create_dataframe(pdf_url:str, local_file_path:str, pdf_version:str) -> Tuple[bool, Union[Exception, pd.DataFrame]] :
-    print("create_dataframe >>")
+    log = logging.getLogger('data_downloader')
+    log.info("create_dataframe >>")
     rv = False
     ret_data_frame:pd.DataFrame = None
     try:
@@ -337,15 +323,25 @@ def create_dataframe(pdf_url:str, local_file_path:str, pdf_version:str) -> Tuple
                     rv, ret_data_frame = refactor_region_df(df, report_date, pdf_version)
 
     except Exception as ex:
-        print("refactor_region_df failed - {ex}".format(ex=ex))
+        log.error("create_dataframe failed - {ex}".format(ex=ex))
         return (False, ex)
         
-    print("create_dataframe <<")
+    log.info("create_dataframe <<")
     return (rv, ret_data_frame)
 
-def save_df_to_csv() -> bool :
-    columns = "Regione","Ricoverati con sintomi,Terapia intensiva,Isolamento domiciliare,Totale attualmente positivi,DIMESSI/GUARITI,DECEDUTI,CASI TOTALI - A,INCREMENTO CASI TOTALI (rispetto al giorno precedente),Casi identificatidal sospettodiagnostico,Casi identificatida attività discreening,CASI TOTALI - B,Totale casi testati,Totale tamponi effettuati,INCREMENTOTAMPONI,REPORT DATE"
-
+def save_df_to_csv(df:pd.DataFrame, csv_file_name:str, column_list:List[str]) -> bool :
+    log = logging.getLogger('save_df_to_csv')
+    log.info("create_dataframe >>")
+    rv = False
+    try:
+        pass
+    except Exception as ex:
+        log.error("save_df_to_csv failed - {ex}".format(ex=ex))
+        return False
+        
+    log.info("save_df_to_csv <<")
+    return rv
+    
 # ----------------------------------------
 # Notebook content - END.
 # ----------------------------------------
@@ -355,12 +351,25 @@ def main( args ) -> bool:
     log.info("Main >>")
     rv = False
     try:
+        temp_content_dir = os.path.join(os.sep, 'tmp')
+
         pdf_file_name = "dpc-covid19-ita-scheda-regioni-20201202.pdf"
         pdf_url = "https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/schede-riepilogative/regioni/{fn}".format(fn=pdf_file_name)
         
         pdf_file = os.path.join(temp_content_dir, pdf_file_name)
-        rv, region_df = create_dataframe(pdf_url=pdf_url, local_file_path=pdf_file, pdf_version="v1")
-        print(read_pdf.shape)
+        rv, region_df_rv = create_dataframe(pdf_url=pdf_url, local_file_path=pdf_file, pdf_version="v1")
+        if rv == True:
+            region_df = cast(pd.DadaFrame, region_df_rv)
+            log.info(region_df.shape)
+
+            columns_all = ["Regione","Ricoverati con sintomi","Terapia intensiva","Isolamento domiciliare"
+                       ,"Totale attualmente positivi","DIMESSI/GUARITI","DECEDUTI","CASI TOTALI - A"
+                       ,"INCREMENTO CASI TOTALI (rispetto al giorno precedente)","Casi identificatidal sospettodiagnostico"
+                       ,"Casi identificatida attività discreening","CASI TOTALI - B"
+                       ,"Totale casi testati","Totale tamponi effettuati","INCREMENTOTAMPONI","REPORT DATE"]
+            columns_report_charts = []
+            data_file = os.path.join(temp_content_dir, "virus_data_file.csv")
+            rv = save_df_to_csv(region_df, data_file, columns)
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
