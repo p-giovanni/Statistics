@@ -55,9 +55,6 @@ def init_logger(log_dir:str, file_name:str, log_level, std_out_log_level=logging
     for _ in ("urllib3"):
         logging.getLogger(_).setLevel(logging.CRITICAL)
 
-# ----------------------------------------
-# Notebook content - BEGIN.
-# ----------------------------------------
 def get_web_file(url:str) -> Tuple[bool, Union[Exception, bytes]] :
     """
     
@@ -228,6 +225,23 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
                                   ,df_res.columns[14]: "INCREMENTO TAMPONI" 
                           },
                       inplace = True)
+        elif pdf_version in ["v6"]:
+            df_res.rename(columns={df_res.columns[ 0]: "Regione"
+                                  ,df_res.columns[ 1]: "Ricoverati con sintomi"
+                                  ,df_res.columns[ 2]: "Terapia intensiva"
+                                  ,df_res.columns[ 3]: "Ingressi delgiorno"
+                                  ,df_res.columns[ 3]: "Terapia intensiva - INGRESSI del GIORNO"
+                                  ,df_res.columns[ 4]: "Isolamento domiciliare"
+                                  ,df_res.columns[ 5]: "Totale attualmente positivi"
+                                  ,df_res.columns[ 6]: "DIMESSI/GUARITI"
+                                  ,df_res.columns[ 7]: "DECEDUTI"
+                                  ,df_res.columns[ 8]: "CASI TOTALI - A"
+                                  ,df_res.columns[ 9]: "INCREMENTO CASI TOTALI (rispetto al giorno precedente)"
+                                  ,df_res.columns[10]: "Totale persone testate"
+                                  ,df_res.columns[11]: "Totale tamponi effettuati"
+                                  ,df_res.columns[12]: "INCREMENTO TAMPONI" 
+                          },
+                      inplace = True)         
 
         elif pdf_version in ["v2", "v3"]:
             if pdf_version == "v3" and len(df.columns) == 12:
@@ -294,22 +308,6 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
             df_res["Totale casi testati"] = np.nan 
             df_res["INCREMENTO CASI TOTALI (rispetto al giorno precedente)"] = np.nan
   
-        elif pdf_version in ["v6"]:
-            df_res.rename(columns={df_res.columns[ 0]: "Regione"
-                                  ,df_res.columns[ 1]: "Ricoverati con sintomi"
-                                  ,df_res.columns[ 2]: "Terapia intensiva"
-                                  ,df_res.columns[ 3]: "Terapia intensiva - INGRESSI del GIORNO"
-                                  ,df_res.columns[ 4]: "Isolamento domiciliare"
-                                  ,df_res.columns[ 5]: "Totale attualmente positivi"
-                                  ,df_res.columns[ 6]: "DIMESSI/GUARITI"
-                                  ,df_res.columns[ 7]: "DECEDUTI"
-                                  ,df_res.columns[ 8]: "CASI TOTALI - A"
-                                  ,df_res.columns[ 9]: "INCREMENTO CASI TOTALI (rispetto al giorno precedente)"
-                                  ,df_res.columns[10]: "Totale persone testate"
-                                  ,df_res.columns[11]: "Totale tamponi effettuati"
-                                  ,df_res.columns[12]: "INCREMENTO TAMPONI" 
-                          },
-                      inplace = True)         
         else:
             ex = Exception("Unknown pdf version: {pv}".format(pv=pdf_version))
             print("Error - {ex}".format(ex=ex))
@@ -325,13 +323,7 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
         df_res = ex
     print("refactor_region_df ({rv}) <<".format(rv=rv))
     return (rv, df_res)
-# ----------------------------------------
-# Notebook content - END.
-# ----------------------------------------
 
-# ----------------------------------------
-# Notebook content - BEGIN.
-# ----------------------------------------
 def create_dataframe(pdf_url:str, local_file_path:str, pdf_version:str) -> Tuple[bool, Union[Exception, pd.DataFrame]] :
     print("create_dataframe >>")
     rv = False
@@ -350,6 +342,10 @@ def create_dataframe(pdf_url:str, local_file_path:str, pdf_version:str) -> Tuple
         
     print("create_dataframe <<")
     return (rv, ret_data_frame)
+
+def save_df_to_csv() -> bool :
+    columns = "Regione","Ricoverati con sintomi,Terapia intensiva,Isolamento domiciliare,Totale attualmente positivi,DIMESSI/GUARITI,DECEDUTI,CASI TOTALI - A,INCREMENTO CASI TOTALI (rispetto al giorno precedente),Casi identificatidal sospettodiagnostico,Casi identificatida attività discreening,CASI TOTALI - B,Totale casi testati,Totale tamponi effettuati,INCREMENTOTAMPONI,REPORT DATE"
+
 # ----------------------------------------
 # Notebook content - END.
 # ----------------------------------------
