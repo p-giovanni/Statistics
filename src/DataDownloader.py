@@ -1,5 +1,6 @@
 import os
 import re
+import csv
 import json
 import codecs
 import locale
@@ -309,7 +310,9 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
     log.info("refactor_region_df ({rv}) <<".format(rv=rv))
     return (rv, df_res)
 
-def create_dataframe(pdf_url:str, local_file_path:str, pdf_version:str) -> Tuple[bool, Union[Exception, pd.DataFrame]] :
+def create_dataframe(pdf_url:str
+                    ,local_file_path:str
+                    ,pdf_version:str) -> Tuple[bool, Union[Exception, pd.DataFrame]] :
     log = logging.getLogger('data_downloader')
     log.info("create_dataframe >>")
     rv = False
@@ -326,20 +329,36 @@ def create_dataframe(pdf_url:str, local_file_path:str, pdf_version:str) -> Tuple
         log.error("create_dataframe failed - {ex}".format(ex=ex))
         return (False, ex)
         
-    log.info("create_dataframe <<")
+    log.info("create_dataframe ({rv}) <<".format(rv=rv))
     return (rv, ret_data_frame)
 
-def save_df_to_csv(df:pd.DataFrame, csv_file_name:str, column_list:List[str]) -> bool :
+def save_df_to_csv(df:pd.DataFrame
+                  ,csv_file_name:str
+                  ,column_list:List[str]
+                  ,sorting_col:str) -> bool :
     log = logging.getLogger('save_df_to_csv')
     log.info("create_dataframe >>")
     rv = False
     try:
-        pass
+        header = True
+        df = df.loc[:,column_list]
+        df.sort_values(by=[sorting_col], inplace=True)    
+        if os.path.isfile(csv_file_name) == True:
+            header = False
+            with open(csv_file_name) as fh:
+                csv_reader = csv.reader(fh)
+                csv_headings = next(csv_reader)
+                if csv_headings != column_list:
+                    ex = Exception("Columns differnt from file header")
+                    log.error("Error in date translation - {e}".format(e=ex))
+                    return False
+        df.to_csv(csv_file_name, header = header, index=False)
+    
     except Exception as ex:
         log.error("save_df_to_csv failed - {ex}".format(ex=ex))
         return False
         
-    log.info("save_df_to_csv <<")
+    log.info("save_df_to_csv ({rv}) <<".format(rv=rv))
     return rv
     
 # ----------------------------------------
@@ -359,7 +378,7 @@ def main( args ) -> bool:
         pdf_file = os.path.join(temp_content_dir, pdf_file_name)
         rv, region_df_rv = create_dataframe(pdf_url=pdf_url, local_file_path=pdf_file, pdf_version="v1")
         if rv == True:
-            region_df = cast(pd.DadaFrame, region_df_rv)
+            region_df = cast(pd.DataFrame, region_df_rv)
             log.info(region_df.shape)
 
             columns_all = ["Regione","Ricoverati con sintomi","Terapia intensiva","Isolamento domiciliare"
@@ -367,9 +386,13 @@ def main( args ) -> bool:
                        ,"INCREMENTO CASI TOTALI (rispetto al giorno precedente)","Casi identificatidal sospettodiagnostico"
                        ,"Casi identificatida attività discreening","CASI TOTALI - B"
                        ,"Totale casi testati","Totale tamponi effettuati","INCREMENTOTAMPONI","REPORT DATE"]
-            columns_report_charts = []
+            columns_report_charts = ["REPORT DATE","Regione"
+                                    ,"Ricoverati con sintomi","Terapia intensiva","Totale attualmente positivi"
+                                    ,"Isolamento domiciliare"
+                                    ,"CASI TOTALI - A"
+                                    ,"Totale tamponi effettuati"]
             data_file = os.path.join(temp_content_dir, "virus_data_file.csv")
-            rv = save_df_to_csv(region_df, data_file, columns)
+            rv = save_df_to_csv(region_df, data_file, columns_report_charts,"REPORT DATE")
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
