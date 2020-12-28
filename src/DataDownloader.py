@@ -458,8 +458,8 @@ def main( args ) -> bool:
                                 ,"CASI TOTALI - A"
                                 ,"Totale tamponi effettuati"]
         temp_content_dir = os.path.join(os.sep, 'tmp') 
-        rv, df = load_date_range_reports(dt.datetime.strptime("25/06/2020",'%d/%m/%Y')
-                                        ,dt.datetime.strptime("02/12/2020",'%d/%m/%Y')
+        rv, df = load_date_range_reports(dt.datetime.strptime("02/12/2020",'%d/%m/%Y')
+                                        ,dt.datetime.strptime("03/12/2020",'%d/%m/%Y')
                                         ,{"temp_dir": temp_content_dir
                                         ,"data file": os.path.join(os.path.dirname(os.path.realpath(__file__))
                                                                   ,".."
