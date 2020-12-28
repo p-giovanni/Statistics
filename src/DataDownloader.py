@@ -192,9 +192,11 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
     log.info("refactor_region_df ({ver} - {dt}) >>".format(dt=report_date,ver=pdf_version))
     rv = False
     df_res = None
+    schema_version = ""
     try:
         df_res = df
         if pdf_version == "v1":
+            schema_version = "v1"
             df_res.rename(columns={df_res.columns[ 0]: "Regione"
                                   ,df_res.columns[ 1]: "Ricoverati con sintomi"
                                   ,df_res.columns[ 2]: "Terapia intensiva"
@@ -213,11 +215,11 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
                           },
                       inplace = True)
         elif pdf_version in ["v6"]:
+            schema_version = "v6"
             df_res.rename(columns={df_res.columns[ 0]: "Regione"
                                   ,df_res.columns[ 1]: "Ricoverati con sintomi"
                                   ,df_res.columns[ 2]: "Terapia intensiva"
-                                  ,df_res.columns[ 3]: "Ingressi delgiorno"
-                                  ,df_res.columns[ 3]: "Terapia intensiva - INGRESSI del GIORNO"
+                                  ,df_res.columns[ 3]: "Terapia intensiva / Ingressi delgiorno"
                                   ,df_res.columns[ 4]: "Isolamento domiciliare"
                                   ,df_res.columns[ 5]: "Totale attualmente positivi"
                                   ,df_res.columns[ 6]: "DIMESSI/GUARITI"
@@ -230,52 +232,8 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
                           },
                       inplace = True)         
 
-        elif pdf_version in ["v2", "v3"]:
-            if pdf_version == "v3" and len(df.columns) == 12:
-                df.drop([10], axis=1, inplace=True)
-            df_res.rename(columns={df_res.columns[ 0]: "Regione"
-                                  ,df_res.columns[ 1]: "Ricoverati con sintomi"
-                                  ,df_res.columns[ 2]: "Terapia intensiva"
-                                  ,df_res.columns[ 3]: "Isolamento domiciliare"
-                                  ,df_res.columns[ 4]: "Totale attualmente positivi"
-                                  ,df_res.columns[ 5]: "DIMESSI/GUARITI"
-                                  ,df_res.columns[ 6]: "DECEDUTI"
-                                  ,df_res.columns[ 7]: "CASI TOTALI - A"
-                                  ,df_res.columns[ 8]: "INCREMENTO CASI TOTALI (rispetto al giorno precedente)"
-                                  ,df_res.columns[ 9]: "Totale tamponi effettuati" 
-                                  ,df_res.columns[10]: "Totale casi testati" 
-                          },
-                      inplace = True)
-            
-            df_res["Casi identificatidal sospettodiagnostico"] = np.nan
-            df_res["Casi identificatida attività discreening"] = np.nan
-            df_res["CASI TOTALI - B"] = np.nan
-            df_res["INCREMENTO TAMPONI"] = np.nan
-
-        elif pdf_version in ["v4"]:
-            log.info("Columns num: {n}".format(n=len(df_res.columns)))
-            if len(df_res.columns) == 11:
-                df.drop([10], axis=1, inplace=True)
-            df_res.rename(columns={df_res.columns[ 0]: "Regione"
-                                  ,df_res.columns[ 1]: "Ricoverati con sintomi"
-                                  ,df_res.columns[ 2]: "Terapia intensiva"
-                                  ,df_res.columns[ 3]: "Isolamento domiciliare"
-                                  ,df_res.columns[ 4]: "Totale attualmente positivi"
-                                  ,df_res.columns[ 5]: "DIMESSI/GUARITI"
-                                  ,df_res.columns[ 6]: "DECEDUTI"
-                                  ,df_res.columns[ 7]: "CASI TOTALI - A"
-                                  ,df_res.columns[ 8]: "INCREMENTO CASI TOTALI (rispetto al giorno precedente)"
-                                  ,df_res.columns[ 9]: "Totale tamponi effettuati" 
-                          },
-                      inplace = True)
-            
-            df_res["Casi identificatidal sospettodiagnostico"] = np.nan
-            df_res["Casi identificatida attività discreening"] = np.nan
-            df_res["CASI TOTALI - B"] = np.nan
-            df_res["INCREMENTO TAMPONI"] = np.nan
-            df_res["Totale casi testati"] = np.nan
-            
         elif pdf_version in ["v5"]:
+            schema_version = "v5"
             df_res.rename(columns={df_res.columns[ 0]: "Regione"
                                   ,df_res.columns[ 1]: "Ricoverati con sintomi"
                                   ,df_res.columns[ 2]: "Terapia intensiva"
@@ -284,24 +242,18 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
                                   ,df_res.columns[ 5]: "DIMESSI/GUARITI"
                                   ,df_res.columns[ 6]: "DECEDUTI"
                                   ,df_res.columns[ 7]: "CASI TOTALI - A"
-                                  ,df_res.columns[ 8]: "Totale tamponi effettuati" 
-                          },
-                      inplace = True)
-            
-            df_res["Casi identificatidal sospettodiagnostico"] = np.nan
-            df_res["Casi identificatida attività discreening"] = np.nan
-            df_res["CASI TOTALI - B"] = np.nan
-            df_res["INCREMENTO TAMPONI"] = np.nan
-            df_res["Totale casi testati"] = np.nan 
-            df_res["INCREMENTO CASI TOTALI (rispetto al giorno precedente)"] = np.nan
-  
+                                  ,df_res.columns[ 8]: "INCREMENTO CASI TOTALI (rispetto al giorno precedente)"
+                                  ,df_res.columns[ 9]: "Totale tamponi effettuati"
+                                  ,df_res.columns[10]: "Casi testati"
+              },
+            inplace = True)         
         else:
             ex = Exception("Unknown pdf version: {pv}".format(pv=pdf_version))
             log.error("Error - {ex}".format(ex=ex))
-            rv = False
-            df_res = ex
+            return (False, df_res)
         
         df_res["REPORT DATE"] = report_date #pd.to_datetime(report_date, format="%d/%m/%Y")
+        df_res["SCHEMA VERSION"] = schema_version
         rv = True  
         
     except Exception as ex:
@@ -375,6 +327,8 @@ def get_version_from_date(date:dt.datetime)-> Tuple[bool, Union[Exception, str]]
         version = "v6"
     elif date >= dt.datetime.strptime("25/06/2020", '%d/%m/%Y'):
         version = "v1"
+    elif date >= dt.datetime.strptime("01/05/2020", '%d/%m/%Y'):
+        version = "v5"
     else:
         ex = Exception("Unable to find a valid version for {d}".format(d=date))
         log.error("Error {e}".format(e=ex))
@@ -454,12 +408,14 @@ def main( args ) -> bool:
     try:
         columns_report_charts = ["REPORT DATE","Regione"
                                 ,"Ricoverati con sintomi","Terapia intensiva","Totale attualmente positivi"
+                                ,"DECEDUTI"
                                 ,"Isolamento domiciliare"
                                 ,"CASI TOTALI - A"
-                                ,"Totale tamponi effettuati"]
+                                ,"Totale tamponi effettuati"
+                                ,"SCHEMA VERSION"]
         temp_content_dir = os.path.join(os.sep, 'tmp') 
-        rv, df = load_date_range_reports(dt.datetime.strptime("02/12/2020",'%d/%m/%Y')
-                                        ,dt.datetime.strptime("03/12/2020",'%d/%m/%Y')
+        rv, df = load_date_range_reports(dt.datetime.strptime("02/05/2020",'%d/%m/%Y')
+                                        ,dt.datetime.strptime("03/05/2020",'%d/%m/%Y')
                                         ,{"temp_dir": temp_content_dir
                                         ,"data file": os.path.join(os.path.dirname(os.path.realpath(__file__))
                                                                   ,".."
