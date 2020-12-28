@@ -56,7 +56,7 @@ def init_logger(log_dir:str, file_name:str, log_level, std_out_log_level=logging
         logging.getLogger(_).setLevel(logging.CRITICAL)
 
 def get_web_file(url:str) -> Tuple[bool, Union[Exception, bytes]] :
-    log = logging.getLogger('save_df_to_csv')
+    log = logging.getLogger('get_web_file')
     log.info("get_web_file >>")
     log.info("Url: {u}".format(u=url))
     rv = False
@@ -67,11 +67,10 @@ def get_web_file(url:str) -> Tuple[bool, Union[Exception, bytes]] :
             log.info("Get data failed. Received error code: {er}".format(er=str(result.status_code)))
         else:
             result_content = result.content
+            rv = True
     except Exception as ex:
         log.error("get_web_file failed - {ex}".format(ex=ex))
         return (False, ex)
-    else:
-        rv = True
     log.info("get_web_file ({rv}) <<".format(rv=rv))
     return (rv, result_content)    
         
@@ -337,7 +336,7 @@ def save_df_to_csv(df:pd.DataFrame
                   ,column_list:List[str]
                   ,sorting_col:str) -> bool :
     log = logging.getLogger('save_df_to_csv')
-    log.info("create_dataframe >>")
+    log.info("save_df_to_csv >>")
     rv = False
     try:
         header = True
@@ -353,6 +352,7 @@ def save_df_to_csv(df:pd.DataFrame
                     log.error("Error in date translation - {e}".format(e=ex))
                     return False
         df.to_csv(csv_file_name, header = header, index=False)
+        rv = True
     
     except Exception as ex:
         log.error("save_df_to_csv failed - {ex}".format(ex=ex))
@@ -360,7 +360,76 @@ def save_df_to_csv(df:pd.DataFrame
         
     log.info("save_df_to_csv ({rv}) <<".format(rv=rv))
     return rv
+
+def get_version_from_date(date:dt.datetime)-> Tuple[bool, Union[Exception, str]]:
+    log = logging.getLogger('wsave_df_to_csv')
+    log.info("get_version_from_date >>")
+    rv = True
+    version = ""
+    if date >= dt.datetime.strptime("03/12/2020", '%d/%m/%Y'):
+        version = "v6"
+    elif date >= dt.datetime.strptime("25/06/2020", '%d/%m/%Y'):
+        version = "v1"
+    else:
+        ex = Exception("Unable to find a valid version for {d}".format(d=date))
+        log.error("Error {e}".format(e=ex))
+        return (False, ex)
+    log.info("get_version_from_date <<")
+    return (rv, version)
+
+def append_new_data(report_date:str, context:dict) -> Tuple[bool, Union[Exception, pd.DataFrame]] :
+    log = logging.getLogger('append_new_data')
+    log.info("append_new_data >>")
+    rv = False
+    try:
+        date = dt.datetime.strptime(report_date, '%d/%m/%Y')
+        
+        rv, version = get_version_from_date(date)
+        if rv == False:
+            return (False, cast(Exception, version))
+        pdf_file_name = "dpc-covid19-ita-scheda-regioni-{y}{m}{d}.pdf".format(y=date.year
+                                                                             ,m=str(date.month).rjust(2, '0')
+                                                                             ,d=str(date.day).rjust(2, '0'))
+        pdf_url = "https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/schede-riepilogative/regioni/{fn}".format(fn=pdf_file_name)
+        log.info("Url: {u}".format(u=pdf_url))
+        
+        rv, content = get_web_file(pdf_url)
+        if rv == False:
+            return (False, cast(Exception, content))
+        file_name = os.path.join(context["temp_dir"], pdf_file_name)
+        if save_content_to_file(file_name, cast(bytes, content)) == False:
+            return (False, Exception("Error in save_content_to_file."))
+
+        rv, df, report_read_date = pdf_to_dataframe(file_name)
+        if rv == False:
+            return (False, Exception("Error in pdf_to_dataframe."))
+
+        rv, df_regions = refactor_region_df(df, report_read_date, cast(str, version))
+        if rv == False:
+            return (False, cast(Exception, df_regions))
+        if context["save"] == True:
+            rv = save_df_to_csv(df_regions, context["data file"], context["columns"], context["sort column"])
     
+    except Exception as ex:
+        log.error("append_new_data failed - {ex}".format(ex=ex))
+        return (False, ex)
+        
+    log.info("append_new_data ({rv}) <<".format(rv=rv))
+    return (rv, df_regions)
+
+def load_date_range_reports(begin:dt.datetime, to:dt.datetime, context:dict)-> Tuple[bool, Exception]:
+    log = logging.getLogger('load_date_range_reports')
+    log.info("load_date_range_reports >>")
+    rv = False
+    try:
+        pass
+    except Exception as ex:
+        log.error("load_date_range_reports failed - {ex}".format(ex=ex))
+        return (False, ex)
+        
+    log.info("load_date_range_reports ({rv}) <<".format(rv=rv))
+    return (rv, df_regions)
+
 # ----------------------------------------
 # Notebook content - END.
 # ----------------------------------------
@@ -370,30 +439,26 @@ def main( args ) -> bool:
     log.info("Main >>")
     rv = False
     try:
+        columns_report_charts = ["REPORT DATE","Regione"
+                                ,"Ricoverati con sintomi","Terapia intensiva","Totale attualmente positivi"
+                                ,"Isolamento domiciliare"
+                                ,"CASI TOTALI - A"
+                                ,"Totale tamponi effettuati"]
         temp_content_dir = os.path.join(os.sep, 'tmp')
-
-        pdf_file_name = "dpc-covid19-ita-scheda-regioni-20201202.pdf"
-        pdf_url = "https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/schede-riepilogative/regioni/{fn}".format(fn=pdf_file_name)
+        rv, df = load_date_range_reports(dt.datetime.strptime("03/12/2020",'%d/%m/%Y')
+                                        ,dt.datetime.strptime("27/12/2020",'%d/%m/%Y')
+                                        ,{"temp_dir": temp_content_dir
+                                               ,"data file": os.path.join("..","data", "reduced_repord_data.csv")
+                                               ,"columns":columns_report_charts
+                                               ,"save": True
+                                               ,"sort column": "REPORT DATE"})
         
-        pdf_file = os.path.join(temp_content_dir, pdf_file_name)
-        rv, region_df_rv = create_dataframe(pdf_url=pdf_url, local_file_path=pdf_file, pdf_version="v1")
-        if rv == True:
-            region_df = cast(pd.DataFrame, region_df_rv)
-            log.info(region_df.shape)
-
-            columns_all = ["Regione","Ricoverati con sintomi","Terapia intensiva","Isolamento domiciliare"
-                       ,"Totale attualmente positivi","DIMESSI/GUARITI","DECEDUTI","CASI TOTALI - A"
-                       ,"INCREMENTO CASI TOTALI (rispetto al giorno precedente)","Casi identificatidal sospettodiagnostico"
-                       ,"Casi identificatida attività discreening","CASI TOTALI - B"
-                       ,"Totale casi testati","Totale tamponi effettuati","INCREMENTOTAMPONI","REPORT DATE"]
-            columns_report_charts = ["REPORT DATE","Regione"
-                                    ,"Ricoverati con sintomi","Terapia intensiva","Totale attualmente positivi"
-                                    ,"Isolamento domiciliare"
-                                    ,"CASI TOTALI - A"
-                                    ,"Totale tamponi effettuati"]
-            data_file = os.path.join(temp_content_dir, "virus_data_file.csv")
-            rv = save_df_to_csv(region_df, data_file, columns_report_charts,"REPORT DATE")
-
+#            columns_all = ["Regione","Ricoverati con sintomi","Terapia intensiva","Isolamento domiciliare"
+#                       ,"Totale attualmente positivi","DIMESSI/GUARITI","DECEDUTI","CASI TOTALI - A"
+#                       ,"INCREMENTO CASI TOTALI (rispetto al giorno precedente)","Casi identificatidal sospettodiagnostico"
+#                       ,"Casi identificatida attività discreening","CASI TOTALI - B"
+#                       ,"Totale casi testati","Totale tamponi effettuati","INCREMENTOTAMPONI","REPORT DATE"]
+ 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
         rv = False
