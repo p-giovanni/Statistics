@@ -190,6 +190,7 @@ def translate_to_date(report_date:List[str])-> Tuple[bool, Union[Exception, dt.d
 def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str="v1") -> Tuple[bool, Any]:
     log = logging.getLogger('data_downloader')
     log.info("refactor_region_df ({ver} - {dt}) >>".format(dt=report_date,ver=pdf_version))
+    log.debug("\n{d}".format(d=str(df)))
     rv = False
     df_res = None
     schema_version = ""
@@ -243,8 +244,9 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
                                   ,df_res.columns[ 6]: "DECEDUTI"
                                   ,df_res.columns[ 7]: "CASI TOTALI - A"
                                   ,df_res.columns[ 8]: "INCREMENTO CASI TOTALI (rispetto al giorno precedente)"
-                                  ,df_res.columns[ 9]: "Totale tamponi effettuati"
-                                  ,df_res.columns[10]: "Casi testati"
+                                  ,df_res.columns[ 9]: "EMPTY COL"
+                                  ,df_res.columns[10]: "Totale tamponi effettuati"
+                                  ,df_res.columns[11]: "Casi testati"
               },
             inplace = True)         
         else:
@@ -254,6 +256,7 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
         
         df_res["REPORT DATE"] = report_date #pd.to_datetime(report_date, format="%d/%m/%Y")
         df_res["SCHEMA VERSION"] = schema_version
+        log.debug("\n{d}".format(d=str(df_res)))
         rv = True  
         
     except Exception as ex:
@@ -414,8 +417,8 @@ def main( args ) -> bool:
                                 ,"Totale tamponi effettuati"
                                 ,"SCHEMA VERSION"]
         temp_content_dir = os.path.join(os.sep, 'tmp') 
-        rv, df = load_date_range_reports(dt.datetime.strptime("02/05/2020",'%d/%m/%Y')
-                                        ,dt.datetime.strptime("03/05/2020",'%d/%m/%Y')
+        rv, df = load_date_range_reports(dt.datetime.strptime("06/12/2020",'%d/%m/%Y')
+                                        ,dt.datetime.strptime("07/12/2020",'%d/%m/%Y')
                                         ,{"temp_dir": temp_content_dir
                                         ,"data file": os.path.join(os.path.dirname(os.path.realpath(__file__))
                                                                   ,".."
@@ -437,7 +440,7 @@ def main( args ) -> bool:
     return rv
 
 if __name__ == "__main__":
-    init_logger('/tmp', "virus.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
+    init_logger('/tmp', "virus.log",log_level=logging.DEBUG, std_out_log_level=logging.INFO)
     rv = main(sys.argv)
 
     ret_val = 0 if rv == True else 1
