@@ -6,6 +6,8 @@ import codecs
 import locale
 import requests
 import datetime as dt
+#from datetime import timedelta, date
+
 from typing import Any, Tuple, Dict
 
 import tabula               # type: ignore
@@ -339,19 +341,22 @@ def save_df_to_csv(df:pd.DataFrame
     log.info("save_df_to_csv >>")
     rv = False
     try:
+        mode = 'w'
         header = True
         df = df.loc[:,column_list]
         df.sort_values(by=[sorting_col], inplace=True)    
         if os.path.isfile(csv_file_name) == True:
             header = False
+            mode = 'a'
             with open(csv_file_name) as fh:
                 csv_reader = csv.reader(fh)
                 csv_headings = next(csv_reader)
                 if csv_headings != column_list:
-                    ex = Exception("Columns differnt from file header")
+                    ex = Exception("Columns differnt from file header\n {l1}\n {l2}\n".format(l1=column_list, l2=csv_headings))
                     log.error("Error in date translation - {e}".format(e=ex))
                     return False
-        df.to_csv(csv_file_name, header = header, index=False)
+        log.info("Save to: {f} headers: {h}".format(f=csv_file_name, h=header))
+        df.to_csv(csv_file_name, mode=mode, header = header, index=False)
         rv = True
     
     except Exception as ex:
@@ -417,18 +422,26 @@ def append_new_data(report_date:str, context:dict) -> Tuple[bool, Union[Exceptio
     log.info("append_new_data ({rv}) <<".format(rv=rv))
     return (rv, df_regions)
 
-def load_date_range_reports(begin:dt.datetime, to:dt.datetime, context:dict)-> Tuple[bool, Exception]:
+def daterange(start_date:dt.datetime, end_date:dt.datetime):
+    for n in range(int((end_date - start_date).days)):
+        yield start_date + dt.timedelta(n)
+
+def load_date_range_reports(begin:dt.datetime, to:dt.datetime, context:dict)-> Tuple[bool, Optional[Exception]]:
     log = logging.getLogger('load_date_range_reports')
     log.info("load_date_range_reports >>")
     rv = False
     try:
-        pass
+        for single_date in daterange(begin, to):
+            rv, df = append_new_data(single_date.strftime("%d/%m/%Y"), context)
+            if rv == False:
+                return (rv, Exception("Failure in append_new_data."))
+
     except Exception as ex:
         log.error("load_date_range_reports failed - {ex}".format(ex=ex))
         return (False, ex)
         
     log.info("load_date_range_reports ({rv}) <<".format(rv=rv))
-    return (rv, df_regions)
+    return (rv, df)
 
 # ----------------------------------------
 # Notebook content - END.
@@ -444,14 +457,16 @@ def main( args ) -> bool:
                                 ,"Isolamento domiciliare"
                                 ,"CASI TOTALI - A"
                                 ,"Totale tamponi effettuati"]
-        temp_content_dir = os.path.join(os.sep, 'tmp')
+        temp_content_dir = os.path.join(os.sep, 'tmp') 
         rv, df = load_date_range_reports(dt.datetime.strptime("03/12/2020",'%d/%m/%Y')
                                         ,dt.datetime.strptime("27/12/2020",'%d/%m/%Y')
                                         ,{"temp_dir": temp_content_dir
-                                               ,"data file": os.path.join("..","data", "reduced_repord_data.csv")
-                                               ,"columns":columns_report_charts
-                                               ,"save": True
-                                               ,"sort column": "REPORT DATE"})
+                                        ,"data file": os.path.join(os.path.dirname(os.path.realpath(__file__))
+                                                                  ,".."
+                                                                  ,"data", "reduced_repord_data.csv")
+                                        ,"columns":columns_report_charts
+                                        ,"save": True
+                                        ,"sort column": "REPORT DATE"})
         
 #            columns_all = ["Regione","Ricoverati con sintomi","Terapia intensiva","Isolamento domiciliare"
 #                       ,"Totale attualmente positivi","DIMESSI/GUARITI","DECEDUTI","CASI TOTALI - A"
