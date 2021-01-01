@@ -5,6 +5,7 @@ import json
 import codecs
 import locale
 import requests
+import argparse
 import datetime as dt
 #from datetime import timedelta, date
 
@@ -404,11 +405,17 @@ def load_date_range_reports(begin:dt.datetime, to:dt.datetime, context:dict)-> T
 # Notebook content - END.
 # ----------------------------------------
 
-def main( args ) -> bool:
+def main( args:argparse.Namespace ) -> bool:
     log = logging.getLogger('Main')
     log.info("Main >>")
     rv = False
     try:
+        begin_dt = dt.datetime.strptime(args.date_begin,'%d/%m/%Y')
+        end_dt = dt.datetime.strptime(args.date_end,'%d/%m/%Y')
+        if end_dt < begin_dt:
+            log.error("Wrong date range: {b} < {e}".format(b=begin_dt, e=end_dt))
+            return False
+
         columns_report_charts = ["REPORT DATE","Regione"
                                 ,"Ricoverati con sintomi","Terapia intensiva","Totale attualmente positivi"
                                 ,"DECEDUTI"
@@ -417,15 +424,17 @@ def main( args ) -> bool:
                                 ,"Totale tamponi effettuati"
                                 ,"SCHEMA VERSION"]
         temp_content_dir = os.path.join(os.sep, 'tmp') 
-        rv, df = load_date_range_reports(dt.datetime.strptime("06/12/2020",'%d/%m/%Y')
-                                        ,dt.datetime.strptime("07/12/2020",'%d/%m/%Y')
-                                        ,{"temp_dir": temp_content_dir
-                                        ,"data file": os.path.join(os.path.dirname(os.path.realpath(__file__))
-                                                                  ,".."
-                                                                  ,"data", "reduced_repord_data.csv")
-                                        ,"columns":columns_report_charts
-                                        ,"save": True
-                                        ,"sort column": "REPORT DATE"})
+        rv, df = load_date_range_reports(begin=begin_dt
+                                        ,to=end_dt
+                                        ,context={
+                                            "temp_dir": temp_content_dir
+                                           ,"data file": os.path.join(os.path.dirname(os.path.realpath(__file__))
+                                                                     ,".."
+                                                                     ,"data", "reduced_repord_data.csv")
+                                           ,"columns":columns_report_charts
+                                           ,"save": True
+                                           ,"sort column": "REPORT DATE"
+                                        })
         
 #            columns_all = ["Regione","Ricoverati con sintomi","Terapia intensiva","Isolamento domiciliare"
 #                       ,"Totale attualmente positivi","DIMESSI/GUARITI","DECEDUTI","CASI TOTALI - A"
@@ -441,7 +450,13 @@ def main( args ) -> bool:
 
 if __name__ == "__main__":
     init_logger('/tmp', "virus.log",log_level=logging.DEBUG, std_out_log_level=logging.INFO)
-    rv = main(sys.argv)
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("date_begin", help="First report date to download.")
+    parser.add_argument("date_end", help="Last report date to download.")
+    args = parser.parse_args()
+    
+    rv = main(args)
 
     ret_val = 0 if rv == True else 1
     sys.exit(ret_val)
