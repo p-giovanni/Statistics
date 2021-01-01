@@ -194,11 +194,9 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
     log.debug("\n{d}".format(d=str(df)))
     rv = False
     df_res = None
-    schema_version = ""
     try:
         df_res = df
         if pdf_version == "v1":
-            schema_version = "v1"
             df_res.rename(columns={df_res.columns[ 0]: "Regione"
                                   ,df_res.columns[ 1]: "Ricoverati con sintomi"
                                   ,df_res.columns[ 2]: "Terapia intensiva"
@@ -217,7 +215,6 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
                           },
                       inplace = True)
         elif pdf_version in ["v6"]:
-            schema_version = "v6"
             df_res.rename(columns={df_res.columns[ 0]: "Regione"
                                   ,df_res.columns[ 1]: "Ricoverati con sintomi"
                                   ,df_res.columns[ 2]: "Terapia intensiva"
@@ -235,7 +232,6 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
                       inplace = True)         
 
         elif pdf_version in ["v5"]:
-            schema_version = "v5"
             df_res.rename(columns={df_res.columns[ 0]: "Regione"
                                   ,df_res.columns[ 1]: "Ricoverati con sintomi"
                                   ,df_res.columns[ 2]: "Terapia intensiva"
@@ -245,9 +241,8 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
                                   ,df_res.columns[ 6]: "DECEDUTI"
                                   ,df_res.columns[ 7]: "CASI TOTALI - A"
                                   ,df_res.columns[ 8]: "INCREMENTO CASI TOTALI (rispetto al giorno precedente)"
-                                  ,df_res.columns[ 9]: "EMPTY COL"
-                                  ,df_res.columns[10]: "Totale tamponi effettuati"
-                                  ,df_res.columns[11]: "Casi testati"
+                                  ,df_res.columns[ 9]: "Totale tamponi effettuati"
+                                  ,df_res.columns[10]: "Casi testati"
               },
             inplace = True)         
         else:
@@ -256,7 +251,7 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
             return (False, df_res)
         
         df_res["REPORT DATE"] = report_date #pd.to_datetime(report_date, format="%d/%m/%Y")
-        df_res["SCHEMA VERSION"] = schema_version
+        df_res["SCHEMA VERSION"] = pdf_version
         log.debug("\n{d}".format(d=str(df_res)))
         rv = True  
         
@@ -449,7 +444,7 @@ def main( args:argparse.Namespace ) -> bool:
     return rv
 
 if __name__ == "__main__":
-    init_logger('/tmp', "virus.log",log_level=logging.DEBUG, std_out_log_level=logging.INFO)
+    init_logger('/tmp', "virus.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
     
     parser = argparse.ArgumentParser()
     parser.add_argument("date_begin", help="First report date to download.")
