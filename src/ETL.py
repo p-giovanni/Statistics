@@ -67,14 +67,15 @@ def load_data_file(data_file:str)-> Union[Exception, pd.DataFrame] :
     log.info(" <<")
     return df
 
-def calculate_daily_diffs(df:pd.DataFrame)-> Union[Exception, pd.DataFrame] :
+def calculate_daily_diffs(df:pd.DataFrame, in_col:str, out_col:str)-> Union[Exception, pd.DataFrame] :
     log = logging.getLogger('calculate_daily_diffs')
     log.info(" >>")
     try:
         regions_list = df["Regione"].unique()
-        mask = df['Regione'] == 'Lombardia'
-        df.loc[mask,'delta 2'] = df_lombardia['CASI TOTALI - A'].diff(periods = 1)
-    
+        for region in regions_list:
+            mask = df["Regione"] == region
+            df.loc[mask, out_col] = df.loc[mask, in_col].diff(periods = 1)    
+
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
         return False
