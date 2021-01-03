@@ -57,6 +57,7 @@ def load_data_file(data_file:str)-> Union[Exception, pd.DataFrame] :
     log.info(" >>")
     try:
         df = pd.read_csv(data_file, sep=','
+                        ,parse_dates=["REPORT DATE"]
                         ,dtype={
                             "Ricoverati con sintomi": np.int64
                            ,"CASI TOTALI - A": np.int64
