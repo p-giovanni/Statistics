@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import csv
 import json
 import codecs
@@ -7,6 +8,8 @@ import locale
 import requests
 import argparse
 import datetime as dt
+import logging
+from logging.handlers import RotatingFileHandler
 #from datetime import timedelta, date
 
 from typing import Any, Tuple, Dict
@@ -18,11 +21,6 @@ import numpy as np          # type: ignore
 
 from typing import Union, Optional, Tuple, List, cast
 
-# ----------------------------------------
-# Not to be used in the notebook.
-import sys
-import logging
-from logging.handlers import RotatingFileHandler
 # ----------------------------------------
 ok_statuses = [200, 201, 202]
 
@@ -78,7 +76,7 @@ def get_web_file(url:str) -> Tuple[bool, Union[Exception, bytes]] :
     return (rv, result_content)    
         
 def save_content_to_file(file_name:str, content:bytes) -> bool :
-    log = logging.getLogger('data_downloader')
+    log = logging.getLogger('save_content_to_file')
     rv = False
     try:
         with open(file_name, "wb") as fh:
