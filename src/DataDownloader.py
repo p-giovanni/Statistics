@@ -287,7 +287,7 @@ def save_df_to_csv(df:pd.DataFrame
                   ,column_list:List[str]
                   ,sorting_col:str) -> bool :
     log = logging.getLogger('save_df_to_csv')
-    log.info("save_df_to_csv >>")
+    log.info(" >>")
     rv = False
     try:
         mode = 'w'
@@ -309,10 +309,10 @@ def save_df_to_csv(df:pd.DataFrame
         rv = True
     
     except Exception as ex:
-        log.error("save_df_to_csv failed - {ex}".format(ex=ex))
+        log.error(" failed - {ex}".format(ex=ex))
         return False
         
-    log.info("save_df_to_csv ({rv}) <<".format(rv=rv))
+    log.info(" ({rv}) <<".format(rv=rv))
     return rv
 
 def get_version_from_date(date:dt.datetime)-> Tuple[bool, Union[Exception, str]]:

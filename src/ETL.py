@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import csv
 import json
 import codecs
 import locale
@@ -15,6 +16,8 @@ from typing import Union, Optional, Tuple, List, cast
 
 import numpy as np # type: ignore
 import pandas as pd# type: ignore 
+
+from result_value import ResultKo, ResultOk, ResultValue
 
 from typing import Any, Tuple, Dict, Union
 
@@ -52,7 +55,7 @@ def init_logger(log_dir:str, file_name:str, log_level, std_out_log_level=logging
     for _ in ("urllib3"):
         logging.getLogger(_).setLevel(logging.CRITICAL)
 
-def load_data_file(data_file:str)-> Union[Exception, pd.DataFrame] :
+def load_data_file(data_file:str)-> ResultValue :
     log = logging.getLogger('load_data_file')
     log.info(" >>")
     try:
@@ -64,11 +67,38 @@ def load_data_file(data_file:str)-> Union[Exception, pd.DataFrame] :
                         })
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
-        return False
+        return ResultKo(ex)
     log.info(" <<")
-    return df
+    return ResultOk(df)
 
-def calculate_daily_diffs(df:pd.DataFrame, in_col:str, out_col:str)-> Union[Exception, pd.DataFrame] :
+def save_data_file(df:pd.DataFrame, data_file_out:str, sorting_col:str = "REPORT DATE")-> ResultValue :
+    log = logging.getLogger('save_data_file')
+    log.info(" >>")
+    try:
+        mode = 'w'
+        header = True
+        column_list = df.columns.values
+        df.sort_values(by=[sorting_col], inplace=True)    
+        if os.path.isfile(data_file_out) == True:
+            header = False
+            mode = 'a'
+            with open(data_file_out) as fh:
+                csv_reader = csv.reader(fh)
+                csv_headings = next(csv_reader)
+                if csv_headings != column_list:
+                    ex = Exception("Columns differnt from file header\n {l1}\n {l2}\n".format(l1=column_list, l2=csv_headings))
+                    log.error("Error in date translation - {e}".format(e=ex))
+                    return ResultKo(ex)
+        log.info("Save to: {f} headers: {h}".format(f=data_file_out, h=header))
+        df.to_csv(data_file_out, mode=mode, header = header, index=False)
+
+    except Exception as ex:
+        log.error("Exception caught - {ex}".format(ex=ex))
+        return ResultKo(ex)
+    log.info(" <<")
+    return ResultOk(df)
+
+def calculate_daily_diffs(df:pd.DataFrame, in_col:str, out_col:str)-> ResultValue :
     log = logging.getLogger('calculate_daily_diffs')
     log.info(" >>")
     try:
@@ -79,25 +109,31 @@ def calculate_daily_diffs(df:pd.DataFrame, in_col:str, out_col:str)-> Union[Exce
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
-        return False
+        return ResultKo(ex)
     log.info(" <<")
-    return df
+    return ResultOk(df)
 
-def main( args:argparse.Namespace ) -> bool:
+def main( args:argparse.Namespace ) -> ResultValue :
     log = logging.getLogger('Main')
     log.info(" >>")
-    rv = False
+    rv:Optional[ResultValue] = None
     try:
         data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
                                                 ,".."
                                                 ,"data", "reduced_repord_data.csv")
         result = load_data_file(data_file=data_file)
-        if type(result) == pd.DataFrame:
-            pass
+        if result.is_ok:
+            result = calculate_daily_diffs(cast(pd.DataFrame, result())
+                                         ,in_col="CASI TOTALI - A", out_col="D - CASI TOTALI - A")
+        if result.is_ok():
+            result = save_data_file(cast(pd.DataFrame, result)
+                                   ,os.path.join(os.path.dirname(os.path.realpath(__file__)),".." ,"data", "repord_data.csv"))
+
+        rv = ResultOk(None)
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
-        rv = False
+        rv = ResultKo(ex)
     log.info(" ({rv}) <<".format(rv=rv))
     return rv
 
@@ -109,6 +145,6 @@ if __name__ == "__main__":
     
     rv = main(args)
 
-    ret_val = 0 if rv == True else 1
+    ret_val = os.EX_OK if rv == True else os.EX_USAGE
     sys.exit(ret_val)
 
