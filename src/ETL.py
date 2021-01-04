@@ -37,7 +37,7 @@ def init_logger(log_dir:str, file_name:str, log_level, std_out_log_level=logging
     :return:
     """
     root = logging.getLogger()
-    dap_format = '%(asctime)s %(name)s %(levelname)s %(message)s'
+    dap_format = '%(asctime)s %(levelname)s %(name)s %(message)s'
     formatter = logging.Formatter(dap_format)
     # File logger.
     root.setLevel(logging.DEBUG)
@@ -71,7 +71,9 @@ def load_data_file(data_file:str)-> ResultValue :
     log.info(" <<")
     return ResultOk(df)
 
-def save_data_file(df:pd.DataFrame, data_file_out:str, sorting_col:str = "REPORT DATE")-> ResultValue :
+def save_data_file(df:pd.DataFrame, data_file_out:str
+                  ,sorting_col:str = "REPORT DATE"
+                  ,owerwrite:bool = False)-> ResultValue :
     log = logging.getLogger('save_data_file')
     log.info(" >>")
     try:
@@ -81,7 +83,8 @@ def save_data_file(df:pd.DataFrame, data_file_out:str, sorting_col:str = "REPORT
         df.sort_values(by=[sorting_col], inplace=True)    
         if os.path.isfile(data_file_out) == True:
             header = False
-            mode = 'a'
+            if not owerwrite:
+                mode = 'a'
             with open(data_file_out) as fh:
                 csv_reader = csv.reader(fh)
                 csv_headings = next(csv_reader)
@@ -116,20 +119,25 @@ def calculate_daily_diffs(df:pd.DataFrame, in_col:str, out_col:str)-> ResultValu
 def main( args:argparse.Namespace ) -> ResultValue :
     log = logging.getLogger('Main')
     log.info(" >>")
-    rv:Optional[ResultValue] = None
+    rv:ResultValue = ResultKo(Exception("Error"))
     try:
         data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
                                                 ,".."
                                                 ,"data", "reduced_repord_data.csv")
         result = load_data_file(data_file=data_file)
-        if result.is_ok:
-            result = calculate_daily_diffs(cast(pd.DataFrame, result())
-                                         ,in_col="CASI TOTALI - A", out_col="D - CASI TOTALI - A")
+        delta_cols = ["CASI TOTALI - A", "DECEDUTI"]
+        for col in delta_cols:
+            if result.is_ok: 
+                result = calculate_daily_diffs(cast(pd.DataFrame, result())
+                                              ,in_col=col, out_col="D - {c}".format(c=col))
+            else:
+                break
         if result.is_ok():
-            result = save_data_file(cast(pd.DataFrame, result)
-                                   ,os.path.join(os.path.dirname(os.path.realpath(__file__)),".." ,"data", "repord_data.csv"))
-
-        rv = ResultOk(None)
+            result = save_data_file(cast(pd.DataFrame, result())
+                                   ,os.path.join(os.path.dirname(os.path.realpath(__file__)),".." ,"data", "repord_data.csv")
+                                   ,owerwrite=True)
+        if result.is_ok():
+            rv = ResultOk(None)
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))

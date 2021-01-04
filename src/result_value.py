@@ -12,8 +12,10 @@ class ResultValue(object):
         self._in_error = True
 
     def __call__(self):
-        print("__call__")
         return self._value
+
+    def __str__(self)-> str :
+        return "Is error: {e} - {t}".format(e=self._in_error, t=type(self._value))
 
     def is_in_error(self)-> bool :
         return self._in_error
