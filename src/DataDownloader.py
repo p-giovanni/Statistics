@@ -383,10 +383,10 @@ def load_date_range_reports(begin:dt.datetime, to:dt.datetime, context:dict)-> R
                 return ResultKo(Exception("Failure in append_new_data."))
 
     except Exception as ex:
-        log.error("load_date_range_reports failed - {ex}".format(ex=ex))
+        log.error(" failed - {ex}".format(ex=ex))
         return ResultKo(ex)
         
-    log.info(" ({rv}) <<".format(rv=rv))
+    log.info(" <<")
     return ResultOk(df)
 
 # ----------------------------------------
@@ -395,7 +395,7 @@ def load_date_range_reports(begin:dt.datetime, to:dt.datetime, context:dict)-> R
 
 def main( args:argparse.Namespace ) -> bool:
     log = logging.getLogger('Main')
-    log.info("Main >>")
+    log.info(" >>")
     rv:ResultValue = ResultKo(Exception("Error"))
     try:
         begin_dt = dt.datetime.strptime(args.date_begin,'%d/%m/%Y')
@@ -433,7 +433,7 @@ def main( args:argparse.Namespace ) -> bool:
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
         return False
-    log.info("Main ({rv}) <<".format(rv=rv.is_in_error()))
+    log.info(" ({rv}) <<".format(rv=rv.is_ok()))
     return rv.is_in_error()
 
 if __name__ == "__main__":
@@ -446,6 +446,6 @@ if __name__ == "__main__":
     
     rv = main(args)
 
-    ret_val = 0 if rv == True else 1
+    ret_val = os.EX_OK if rv == True else os.EX_USAGE
     sys.exit(ret_val)
 
