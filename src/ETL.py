@@ -123,7 +123,7 @@ def main( args:argparse.Namespace ) -> ResultValue :
     try:
         data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
                                                 ,".."
-                                                ,"data", "reduced_repord_data.csv")
+                                                ,"data", "reduced_report_data.csv")
         result = load_data_file(data_file=data_file)
         delta_cols = ["CASI TOTALI - A", "DECEDUTI"]
         for col in delta_cols:

@@ -85,12 +85,12 @@ def save_content_to_file(file_name:str, content:bytes) -> ResultValue :
         log.error("save_content_to_file failed - {ex}".format(ex=ex))
         rv = ResultKo(ex)
     else:
-        ResultOk(True)
+        rv = ResultOk(True)
     return rv
    
 def pdf_to_dataframe(pdf_file_name:str) -> ResultValue :
-    log = logging.getLogger('data_downloader')
-    log.info("pdf_to_dataframe ({fn}) >>".format(fn=pdf_file_name))
+    log = logging.getLogger('pdf_to_dataframe')
+    log.info(" ({fn}) >>".format(fn=pdf_file_name))
     df = None
     report_date:dt.datetime = dt.datetime(1964,8,3,0,0)
     try:
@@ -130,7 +130,7 @@ def pdf_to_dataframe(pdf_file_name:str) -> ResultValue :
                             log.error(msg)
                             return ResultKo(Exception(msg))
                         else:
-                            report_date = cast(dt.datetime, report_date_rv())
+                            report_date = report_date_rv()
                 elif 'AGGIORNAMENTO ' in line:
                     parts = line.split(" ")
                     if len(parts) > 1:
@@ -142,13 +142,12 @@ def pdf_to_dataframe(pdf_file_name:str) -> ResultValue :
     except Exception as ex:
         log.info("pdf_to_dataframe failed - {ex}".format(ex=ex))
         return ResultKo(ex)
-    log.info("pdf_to_dataframe (rv={rv} - report_date={rd}) <<".format(rv=rv, rd=report_date))
+    log.info(" (report_date={rd}) <<".format(rd=report_date))
     return ResultOk((df, report_date))
 
 def translate_to_date(report_date:List[str])-> ResultValue :
     #log.info("translate_to_date {p} >>".format(p=str(dt)))
     log = logging.getLogger('data_downloader')
-    rv = False
     date = None
     months_names = {
         "gennaio":    1
@@ -255,7 +254,7 @@ def refactor_region_df(df:pd.DataFrame, report_date:dt.datetime, pdf_version:str
         return ResultKo(ex)
 
     log.info(" <<")
-    return ResultKo(df_res)
+    return ResultOk(df_res)
 
 def create_dataframe(pdf_url:str
                     ,local_file_path:str
@@ -307,7 +306,7 @@ def save_df_to_csv(df:pd.DataFrame
         log.error(" failed - {ex}".format(ex=ex))
         return ResultKo(ex)
         
-    log.info(" ({rv}) <<".format(rv=rv))
+    log.info(" <<")
     return ResultOk(True)
 
 def get_version_from_date(date:dt.datetime)-> ResultValue :
@@ -351,7 +350,7 @@ def append_new_data(report_date:str, context:dict) -> ResultValue :
             return ResultKo(Exception("Error in save_content_to_file."))
 
         rv = pdf_to_dataframe(file_name)
-        if rv.is_in_error() == False:
+        if rv.is_in_error():
             return ResultKo(Exception("Error in pdf_to_dataframe."))
 
         df, report_read_date = rv()
@@ -360,13 +359,14 @@ def append_new_data(report_date:str, context:dict) -> ResultValue :
             return ResultKo(df_regions())
 
         if context["save"] == True:
-            rv = save_df_to_csv(df_regions, context["data file"], context["columns"], context["sort column"])
-    
+            rv = save_df_to_csv(df_regions(), context["data file"], context["columns"], context["sort column"])
+            if rv.is_in_error():
+                return ResultKo(rv())
     except Exception as ex:
         log.error("append_new_data failed - {ex}".format(ex=ex))
         return ResultKo(ex)
         
-    log.info(" ({rv}) <<".format(rv=rv))
+    log.info(" <<")
     return ResultOk(df_regions)
 
 def daterange(start_date:dt.datetime, end_date:dt.datetime):
@@ -418,7 +418,7 @@ def main( args:argparse.Namespace ) -> bool:
                                             "temp_dir": temp_content_dir
                                            ,"data file": os.path.join(os.path.dirname(os.path.realpath(__file__))
                                                                      ,".."
-                                                                     ,"data", "reduced_repord_data.csv")
+                                                                     ,"data", "reduced_report_data.csv")
                                            ,"columns":columns_report_charts
                                            ,"save": True
                                            ,"sort column": "REPORT DATE"
