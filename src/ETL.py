@@ -88,7 +88,7 @@ def save_data_file(df:pd.DataFrame, data_file_out:str
             with open(data_file_out) as fh:
                 csv_reader = csv.reader(fh)
                 csv_headings = next(csv_reader)
-                if csv_headings != column_list:
+                if csv_headings != list(column_list):
                     ex = Exception("Columns differnt from file header\n {l1}\n {l2}\n".format(l1=column_list, l2=csv_headings))
                     log.error("Error in date translation - {e}".format(e=ex))
                     return ResultKo(ex)
@@ -134,7 +134,7 @@ def main( args:argparse.Namespace ) -> ResultValue :
                 break
         if result.is_ok():
             result = save_data_file(cast(pd.DataFrame, result())
-                                   ,os.path.join(os.path.dirname(os.path.realpath(__file__)),".." ,"data", "repord_data.csv")
+                                   ,os.path.join(os.path.dirname(os.path.realpath(__file__)),".." ,"data", "report_data.csv")
                                    ,owerwrite=True)
         if result.is_ok():
             rv = ResultOk(None)
@@ -153,6 +153,6 @@ if __name__ == "__main__":
     
     rv = main(args)
 
-    ret_val = os.EX_OK if rv == True else os.EX_USAGE
+    ret_val = os.EX_OK if rv.is_ok() == True else os.EX_USAGE
     sys.exit(ret_val)
 
