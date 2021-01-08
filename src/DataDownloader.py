@@ -70,7 +70,7 @@ def get_web_file(url:str) -> ResultValue :
             result_content = result.content
             rv = ResultOk(result_content)
     except Exception as ex:
-        log.error("get_web_file failed - {ex}".format(ex=ex))
+        log.error(" failed - {ex}".format(ex=ex))
         return ResultKo(ex)
     log.info("get_web_file ({rv}) <<".format(rv=rv))
     return rv

@@ -10,51 +10,22 @@ import datetime
 import argparse
 
 import logging
-from logging.handlers import RotatingFileHandler
 
 from typing import Union, Optional, Tuple, List, cast
 
 import numpy as np # type: ignore
 import pandas as pd# type: ignore 
 
-from result_value import ResultKo, ResultOk, ResultValue
-
 from typing import Any, Tuple, Dict, Union
+
+from logger_init import init_logger
+from result_value import ResultKo, ResultOk, ResultValue
 
 locale.setlocale(locale.LC_ALL, 'it_IT.UTF-8')
 
 # ----------------------------------------
-# init_logger
+# 
 # ----------------------------------------
-def init_logger(log_dir:str, file_name:str, log_level, std_out_log_level=logging.ERROR) -> None :
-    """
-    Logger initializzation for file logging and stdout logging with
-    different level.
-
-    :param log_dir: path for the logfile;
-    :param log_level: logging level for the file logger;
-    :param std_out_log_level: logging level for the stdout logger;
-    :return:
-    """
-    root = logging.getLogger()
-    dap_format = '%(asctime)s %(levelname)s %(name)s %(message)s'
-    formatter = logging.Formatter(dap_format)
-    # File logger.
-    root.setLevel(logging.DEBUG)
-    fh = RotatingFileHandler(os.path.join(log_dir, file_name), maxBytes=1000000, backupCount=5)
-    fh.setLevel(log_level)
-    fh.setFormatter(formatter)
-    root.addHandler(fh)
-
-    # Stdout logger.
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(std_out_log_level)
-    ch.setFormatter(formatter)
-    root.addHandler(ch)
-
-    for _ in ("urllib3"):
-        logging.getLogger(_).setLevel(logging.CRITICAL)
-
 def load_data_file(data_file:str)-> ResultValue :
     log = logging.getLogger('load_data_file')
     log.info(" >>")
@@ -82,9 +53,11 @@ def save_data_file(df:pd.DataFrame, data_file_out:str
         column_list = df.columns.values
         df.sort_values(by=[sorting_col], inplace=True)    
         if os.path.isfile(data_file_out) == True:
-            header = False
             if not owerwrite:
                 mode = 'a'
+                header = False
+            else:
+                header = True
             with open(data_file_out) as fh:
                 csv_reader = csv.reader(fh)
                 csv_headings = next(csv_reader)
@@ -138,6 +111,11 @@ def main( args:argparse.Namespace ) -> ResultValue :
                                    ,owerwrite=True)
         if result.is_ok():
             rv = ResultOk(None)
+        
+        data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
+                                                ,".."
+                                                ,"data", "report_data.csv")
+        result = load_data_file(data_file=data_file)
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
