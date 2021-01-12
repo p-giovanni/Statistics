@@ -22,10 +22,22 @@ from ChartTools import set_axes_common_properties
 # ----------------------------------------
 # 
 # ----------------------------------------
-def chart_single_line(x:pd.Series, y:pd.Series, region_name:str, dad_date_begin:dt.datetime)-> ResultValue :
+def chart_single_line(x:pd.Series, y:pd.Series, context:dict)-> ResultValue :
     log = logging.getLogger('chart_composite')
     log.info(" >>")
     try:
+        if context.get('region name') is None:
+            msg = "Error: region name field is mandatory."
+            log.error(msg)
+            return ResultKo(Exception(msg))
+        else:
+            region_name = context["region name"]
+        if context.get('title') is None:
+            msg = "Error: title field is mandatory."
+            log.error(msg)
+            return ResultKo(Exception(msg))
+        else:
+            title = context["title"]
         fig = plt.figure(figsize=(20, 10))
         gs1 = gridspec.GridSpec(1, 1
                                ,hspace=0.2
@@ -45,16 +57,17 @@ def chart_single_line(x:pd.Series, y:pd.Series, region_name:str, dad_date_begin:
         ax[idx].xaxis.set_major_locator(mdates.DayLocator(interval=7))
         ax[idx].set_ylabel("Numero", fontsize=14)
         ax[idx].set_xlabel("Data", fontsize=14)
-        ax[idx].set_title("{reg} - {title} ".format(title="Terapia intensiva", reg=region_name), fontsize=18)
+        ax[idx].set_title("{reg} - {title} ".format(title=title, reg=region_name), fontsize=18)
 
-        ax[idx].scatter(x, y, color="#b9290a", s=30, marker='.', label="Terapia intensiva")
+        ax[idx].scatter(x, y, color="#b9290a", s=30, marker='.', label=title)
         ax[idx].plot(x, y, 'b-', linewidth=2, color="#f09352")
-        ax[idx].axvline(dad_date_begin, color="#048f9e")     
-        ax[idx].text(0.72, 0.25, 'Inizio dad scuole superiori'
-                     ,horizontalalignment='center', verticalalignment='center'
-                     ,transform=ax[idx].transAxes
-                     ,rotation=90
-                     ,color="#048f9e", fontsize=12)
+        if context.get('dad begin date') is not None:
+            ax[idx].axvline(context.get('dad begin date'), color="#048f9e")     
+            ax[idx].text(0.72, 0.25, 'Inizio dad scuole superiori'
+                         ,horizontalalignment='center', verticalalignment='center'
+                         ,transform=ax[idx].transAxes
+                         ,rotation=90
+                         ,color="#048f9e", fontsize=12)
 
         ax[idx].legend(fontsize=12, loc='upper left')
     except Exception as ex:
