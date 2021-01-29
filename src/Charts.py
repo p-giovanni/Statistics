@@ -1,13 +1,14 @@
 
 import os
 import sys
+import locale
 import logging
 import argparse
 import datetime as dt
 
-import pandas as pd # type: ignore 
-
+import pandas as pd                     # type: ignore 
 import matplotlib as mp                 # type: ignore        
+
 from matplotlib import pyplot as plt    # type: ignore     
 import matplotlib.dates as mdates       # type: ignore 
 import matplotlib.gridspec as gridspec  # type: ignore      
@@ -17,7 +18,7 @@ from logger_init import init_logger
 from result_value import ResultKo, ResultOk, ResultValue
 from ETL import load_data_file
 from ChartTools import set_axes_common_properties
-
+from ChartTools import remove_tick_lines
 
 # ----------------------------------------
 # 
@@ -49,6 +50,8 @@ def chart_single_line(x:pd.Series, y:pd.Series, context:dict)-> ResultValue :
         idx = 0
         set_axes_common_properties(ax[0], no_grid=False)
 
+        remove_tick_lines('x', ax[idx])
+        remove_tick_lines('y', ax[idx])
         ax[idx].set_xticks(x)
         ax[idx].set_xticklabels(x, rotation=80)
 
@@ -63,7 +66,7 @@ def chart_single_line(x:pd.Series, y:pd.Series, context:dict)-> ResultValue :
         ax[idx].plot(x, y, 'b-', linewidth=2, color="#f09352")
         if context.get('dad begin date') is not None:
             ax[idx].axvline(context.get('dad begin date'), color="#048f9e")     
-            ax[idx].text(0.72, 0.25, 'Inizio dad scuole superiori'
+            ax[idx].text(0.65, 0.25, 'Inizio dad scuole superiori'
                          ,horizontalalignment='center', verticalalignment='center'
                          ,transform=ax[idx].transAxes
                          ,rotation=90
@@ -80,6 +83,8 @@ def chart_composite(x:pd.Series, y_one:pd.Series, y_two:pd.Series, region_name:s
     log = logging.getLogger('chart_composite')
     log.info(" >>")
     try:
+        locale.setlocale(locale.LC_ALL, 'it_IT.UTF-8')
+        
         fig = plt.figure(figsize=(20, 10))
         gs1 = gridspec.GridSpec(1, 1
                                ,hspace=0.2
@@ -90,6 +95,11 @@ def chart_composite(x:pd.Series, y_one:pd.Series, y_two:pd.Series, region_name:s
         ax.append(fig.add_subplot(gs1[0,0]))
         idx = 0
         set_axes_common_properties(ax[0], no_grid=False)
+
+        ax[idx].get_yaxis().set_major_formatter(mp.ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
+
+        remove_tick_lines('x', ax[idx])
+        remove_tick_lines('y', ax[idx])
 
         ax[idx].set_xticks(x)
         ax[idx].set_xticklabels(x, rotation=80)
@@ -102,20 +112,28 @@ def chart_composite(x:pd.Series, y_one:pd.Series, y_two:pd.Series, region_name:s
         ax[idx].set_title("{reg} - {title} ".format(title="Deceduti/Ammalati - totale", reg=region_name), fontsize=18)
 
         ax[idx].scatter(x, y_one, color="#b9290a", s=30, marker='.')
-        ax[idx].plot(x, y_one, 'b-', linewidth=2, color="#f09352", label="Totale ammalati")
+        ln_one = ax[idx].plot(x, y_one, 'b-', linewidth=2, color="#f09352", label="Totale ammalati")
 
         dec_color = "#8f0013"
         ax_dec = ax[idx].twinx()
+
+        remove_tick_lines('y', ax_dec)
         set_axes_common_properties(ax_dec, no_grid=True)
         ax_dec.scatter(x, y_two, color=dec_color, s=30, marker='.')
-        ax_dec.plot(x, y_two, 'b-', linewidth=2, color=dec_color, label="Totale deceduti")
+        
+        ln_two = ax_dec.plot(x, y_two, 'b-', linewidth=2, color=dec_color, label="Totale deceduti")
+        
         ax_dec.set_ylabel("Totale deceduti", fontsize=14)
         ax_dec.yaxis.label.set_color(dec_color)
         ax_dec.tick_params(axis='y', colors=dec_color)
 
+        lns = ln_one+ln_two
+        labs = [l.get_label() for l in lns]
+        ax[idx].legend(lns, labs, loc='upper left')
+
        #ax_dec.axhline(c='#f0b4a7', lw=1)
 
-        ax[idx].legend(fontsize=12, loc='upper left')
+        #ax[idx].legend(fontsize=12, loc='upper left')
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
