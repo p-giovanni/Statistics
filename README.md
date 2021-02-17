@@ -40,9 +40,3 @@ The most interesting one is, in my opinion, the chart that compares the total de
 
 
 
-### Virus spread charts examples
-Lombardy virus spread chart:
-![Virus spread](./images/RegionWeekly-TotalInfected-Lombardia.png?)
-Lombardy intensive care chart:
-![Virus spread](./images/RegionWeekly-IntensiveCare-Lombardia.png?)
-

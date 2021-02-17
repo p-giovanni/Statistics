@@ -5,6 +5,7 @@
     "version": "0.2.0",
     "configurations": [
 
+
         {
             "name": "Downloader",
             "type": "python",
@@ -18,6 +19,14 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/ETL.py",
+            "console": "integratedTerminal",
+            "args": [ ]
+        },
+        {
+            "name": "VacciniDownload",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/VacciniDownload.py",
             "console": "integratedTerminal",
             "args": [ ]
         }
