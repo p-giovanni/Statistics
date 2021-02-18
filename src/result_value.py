@@ -23,6 +23,9 @@ class ResultValue(object):
     def is_ok(self)-> bool :
         return not self._in_error
 
+    def value(self)-> Any :
+        return self._value
+        
 class ResultOk(ResultValue):
     def __init__(self, value:Any)-> None :
         super(ResultOk, self).__init__(value)

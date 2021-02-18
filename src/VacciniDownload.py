@@ -16,10 +16,23 @@ from typing import Union, Optional, Tuple, List, cast
 import numpy as np # type: ignore
 import pandas as pd# type: ignore 
 
+import matplotlib as mp                 # type: ignore        
+from matplotlib import pyplot as plt    # type: ignore     
+import matplotlib.dates as mdates       # type: ignore 
+import matplotlib.gridspec as gridspec  # type: ignore      
+import matplotlib.ticker as mticker     # type: ignore   
+
 from typing import Any, Tuple, Dict, Union
 
 from logger_init import init_logger
 from result_value import ResultKo, ResultOk, ResultValue
+
+from ChartTools import remove_tick_lines
+from ChartTools import every_nth_tick
+from ChartTools import autolabel
+from ChartTools import set_axes_common_properties
+from ChartTools import text_box
+
 
 locale.setlocale(locale.LC_ALL, 'it_IT.UTF-8')
 
@@ -31,7 +44,6 @@ def download_csv_file(url:str, data_file:str) -> ResultValue:
         result = requests.get(url)
         with open(data_file, "w") as text_file:
             text_file.write(result.text)
-        pass
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
@@ -39,18 +51,77 @@ def download_csv_file(url:str, data_file:str) -> ResultValue:
     log.info(" <<")
     return rv
 
+def create_dataframe(data_file:str)-> ResultValue:
+    log = logging.getLogger('create_dataframe')
+    log.info(" >>")
+    try:
+        df = pd.read_csv(data_file, sep=','
+                        ,parse_dates=["data_somministrazione"])
+
+    except Exception as ex:
+        log.error("Exception caught - {ex}".format(ex=ex))
+        rv = ResultKo(ex)
+    log.info(" <<")
+    return ResultOk(df)
+
+def chart_vaccinations_male_female(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultValue :
+    log = logging.getLogger('chart_vaccinations_male_female')
+    log.info(" >>")
+    try:
+        num_male = df["sesso_maschile"].sum()
+        num_female = df["sesso_femminile"].sum()
+        parts = [num_female, num_male]
+        labels = ["Donne", "Uomini"]
+
+        female_color = "#f1a29b"
+        male_color = "#9bd7f1"
+        ax.pie(parts, labels=labels, colors=[female_color, male_color], autopct='%1.1f%%')
+
+    except Exception as ex:
+        log.error("Exception caught - {ex}".format(ex=ex))
+        rv = ResultKo(ex)
+    log.info(" <<")
+    return ResultOk(True)
+
+
 def main( args:argparse.Namespace ) -> ResultValue :
     log = logging.getLogger('Main')
     log.info(" >>")
-    rv:ResultValue = ResultKo(Exception("Error"))
+    #rv:ResultValue = ResultKo(Exception("Error"))
     try:
-        today = dt.datetime.now().strftime("%Y%m%d")
-
+    #    today = dt.datetime.now().strftime("%Y%m%d")
+    #    data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
+    #                                            ,".."
+    #                                            ,"data", "{dt}_vaccinazioni.csv".format(dt=today))
+    #    url = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.csv"
+    #    rv = download_csv_file(url=url, data_file=data_file)
+        
         data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
                                                 ,".."
-                                                ,"data", "{dt}_vaccinazioni.csv".format(dt=today))
-        url = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.csv"
-        rv = download_csv_file(url=url, data_file=data_file)
+                                                ,"data", "vaccinazioni.csv")
+        rv = create_dataframe(data_file=data_file)
+        if rv.is_in_error():
+            log.error(rv.value())
+        else:
+            df = rv.value()
+            mask_region = df["nome_area"] == "Lombardia"
+            df_region = df.loc[mask_region,["data_somministrazione","nome_area","fornitore","sesso_maschile","sesso_femminile","fascia_anagrafica"]]
+            
+            fig = plt.figure(figsize=(20, 10))
+            gs1 = gridspec.GridSpec(1, 1
+                       ,hspace=0.2
+                       ,wspace=0.1 
+                       ,figure=fig)
+            ax = []
+            ax.append(fig.add_subplot(gs1[0,0]))
+            idx = 0
+
+            chart_vaccinations_male_female(df_region, ax=ax[idx])
+
+            plt.savefig(os.path.join(os.sep, "tmp", "vaccini_fig.png")
+                                    ,bbox_inches = 'tight'
+                                    ,pad_inches = 0.2)
+
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
         rv = ResultKo(ex)
