@@ -60,7 +60,7 @@ def create_dataframe(data_file:str)-> ResultValue:
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
-        rv = ResultKo(ex)
+        return ResultKo(ex)
     log.info(" <<")
     return ResultOk(df)
 
@@ -79,10 +79,33 @@ def chart_vaccinations_male_female(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultVal
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
-        rv = ResultKo(ex)
+        return ResultKo(ex)
     log.info(" <<")
     return ResultOk(True)
 
+def age_distribution(df:pd.DataFrame, ax:mp.axes.Axes, gender:str="F")-> ResultValue :
+    log = logging.getLogger('age_distribution')
+    log.info(" >>")
+    try:
+        if gender.upper() not in ["M","F","B"]:
+            msg = "Geneder {v} value not known".format(v=gender)
+            log.error(msg)
+            return ResultKo(Exception(msg))
+
+        by_age = df.groupby(["fascia_anagrafica"]).sum()
+        by_age.reset_index(level=0, inplace=True)
+        by_age["totals"] = by_age["sesso_femminile"] + by_age["sesso_maschile"]
+
+        colors = ["#9aff33","#34ff33","#33ff98","#33fffe","#339aff","#3371ff","#5b33ff","#c133ff","#ff33d7"]
+        values = by_age["sesso_femminile" if gender == "F" else ("sesso_maschile" if gender == "M" else "totals")]
+        labels = by_age["fascia_anagrafica"]
+        ax.pie(values, labels=labels,  autopct='%1.1f%%', colors=colors)
+    
+    except Exception as ex:
+        log.error("Exception caught - {ex}".format(ex=ex))
+        return ResultKo(ex)
+    log.info(" <<")
+    return ResultOk(True)
 
 def main( args:argparse.Namespace ) -> ResultValue :
     log = logging.getLogger('Main')
@@ -116,7 +139,7 @@ def main( args:argparse.Namespace ) -> ResultValue :
             ax.append(fig.add_subplot(gs1[0,0]))
             idx = 0
 
-            chart_vaccinations_male_female(df_region, ax=ax[idx])
+            age_distribution(df_region, ax=ax[idx])
 
             plt.savefig(os.path.join(os.sep, "tmp", "vaccini_fig.png")
                                     ,bbox_inches = 'tight'
