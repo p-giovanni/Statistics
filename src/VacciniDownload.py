@@ -155,6 +155,8 @@ if __name__ == "__main__":
     init_logger('/tmp', "vaccini.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
     
     parser = argparse.ArgumentParser()
+    parser.add_argument("--download", type=str,help="Data download.")
+    parser.add_argument("--chart", type=str,help="Chart.")
     args = parser.parse_args()
     
     rv = main(args)
