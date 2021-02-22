@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/DataDownloader.py",
             "console": "integratedTerminal",
-            "args": ["01/01/2021", "05/01/2021"]
+            "args": ["XX/01/2021", "YY/01/2021"]
         },
         {
             "name": "ETL",
@@ -21,12 +21,20 @@
             "args": [ ]
         },
         {
-            "name": "VacciniDownload",
+            "name": "Vaccini Download",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/VacciniDownload.py",
             "console": "integratedTerminal",
-            "args": ["download"]
+            "args": ["--download"]
+        },
+        {
+            "name": "Vaccini Chart",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/VacciniDownload.py",
+            "console": "integratedTerminal",
+            "args": ["--chart"]
         }
     ]
 }   

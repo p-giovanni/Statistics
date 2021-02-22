@@ -42,8 +42,14 @@ def download_csv_file(url:str, data_file:str) -> ResultValue:
     rv:ResultValue = ResultKo(Exception("Error"))
     try:
         result = requests.get(url)
-        with open(data_file, "w") as text_file:
-            text_file.write(result.text)
+        if result.status_code in [200]:
+            with open(data_file, "w") as text_file:
+                text_file.write(result.text)
+            rv = ResultOk(True)
+        else:
+            msg = "Error downloading the data file: {e}.".format(e=result.reason)
+            log.error(msg)
+            rv = ResultKo(Exception(msg))
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
@@ -112,38 +118,48 @@ def main( args:argparse.Namespace ) -> ResultValue :
     log.info(" >>")
     #rv:ResultValue = ResultKo(Exception("Error"))
     try:
-    #    today = dt.datetime.now().strftime("%Y%m%d")
-    #    data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
-    #                                            ,".."
-    #                                            ,"data", "{dt}_vaccinazioni.csv".format(dt=today))
-    #    url = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.csv"
-    #    rv = download_csv_file(url=url, data_file=data_file)
-        
-        data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
-                                                ,".."
-                                                ,"data", "vaccinazioni.csv")
-        rv = create_dataframe(data_file=data_file)
-        if rv.is_in_error():
-            log.error(rv.value())
-        else:
-            df = rv.value()
-            mask_region = df["nome_area"] == "Lombardia"
-            df_region = df.loc[mask_region,["data_somministrazione","nome_area","fornitore","sesso_maschile","sesso_femminile","fascia_anagrafica"]]
-            
-            fig = plt.figure(figsize=(20, 10))
-            gs1 = gridspec.GridSpec(1, 1
-                       ,hspace=0.2
-                       ,wspace=0.1 
-                       ,figure=fig)
-            ax = []
-            ax.append(fig.add_subplot(gs1[0,0]))
-            idx = 0
+        if args.download == True:
+            today = dt.datetime.now().strftime("%Y%m%d")
+            data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
+                                                    ,".."
+                                                    ,"data", "{dt}_vaccinazioni.csv".format(dt=today))
+            url = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.csv"
+            rv = download_csv_file(url=url, data_file=data_file)
+            if rv.is_in_error():
+                msg = "Data download error: {e}".format(e=rv.value)
+                log.error(msg)
+                print(msg)
+            else:
+                msg = "Data downloaded."
+                log.info(msg)
+                print(msg)
 
-            age_distribution(df_region, ax=ax[idx])
+        if args.chart == True:
+            data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
+                                                    ,".."
+                                                    ,"data", "vaccinazioni.csv")
+            rv = create_dataframe(data_file=data_file)
+            if rv.is_in_error():
+                log.error(rv.value())
+            else:
+                df = rv.value()
+                mask_region = df["nome_area"] == "Lombardia"
+                df_region = df.loc[mask_region,["data_somministrazione","nome_area","fornitore","sesso_maschile","sesso_femminile","fascia_anagrafica"]]
 
-            plt.savefig(os.path.join(os.sep, "tmp", "vaccini_fig.png")
-                                    ,bbox_inches = 'tight'
-                                    ,pad_inches = 0.2)
+                fig = plt.figure(figsize=(20, 10))
+                gs1 = gridspec.GridSpec(1, 1
+                           ,hspace=0.2
+                           ,wspace=0.1 
+                           ,figure=fig)
+                ax = []
+                ax.append(fig.add_subplot(gs1[0,0]))
+                idx = 0
+
+                age_distribution(df_region, ax=ax[idx])
+
+                plt.savefig(os.path.join(os.sep, "tmp", "vaccini_fig.png")
+                                        ,bbox_inches = 'tight'
+                                        ,pad_inches = 0.2)
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
@@ -155,8 +171,8 @@ if __name__ == "__main__":
     init_logger('/tmp', "vaccini.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--download", type=str,help="Data download.")
-    parser.add_argument("--chart", type=str,help="Chart.")
+    parser.add_argument("--download", "-d", action='store_true', help="Data download.")
+    parser.add_argument("--chart",    "-c", action='store_true', help="Chart.")
     args = parser.parse_args()
     
     rv = main(args)
