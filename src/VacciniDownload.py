@@ -16,11 +16,11 @@ from typing import Union, Optional, Tuple, List, cast
 import numpy as np # type: ignore
 import pandas as pd# type: ignore 
 
-import matplotlib as mp                 # type: ignore        
-from matplotlib import pyplot as plt    # type: ignore     
-import matplotlib.dates as mdates       # type: ignore 
-import matplotlib.gridspec as gridspec  # type: ignore      
-import matplotlib.ticker as mticker     # type: ignore   
+import matplotlib as mp                 # type: ignore
+from matplotlib import pyplot as plt    # type: ignore
+import matplotlib.dates as mdates       # type: ignore
+import matplotlib.gridspec as gridspec  # type: ignore
+import matplotlib.ticker as mticker     # type: ignore
 
 from typing import Any, Tuple, Dict, Union
 
@@ -32,7 +32,6 @@ from ChartTools import every_nth_tick
 from ChartTools import autolabel
 from ChartTools import set_axes_common_properties
 from ChartTools import text_box
-
 
 locale.setlocale(locale.LC_ALL, 'it_IT.UTF-8')
 
@@ -82,6 +81,7 @@ def chart_vaccinations_male_female(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultVal
         female_color = "#f1a29b"
         male_color = "#9bd7f1"
         ax.pie(parts, labels=labels, colors=[female_color, male_color], autopct='%1.1f%%')
+        ax.set_title("Distribuzione per genere", fontsize=18)
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
@@ -106,6 +106,7 @@ def age_distribution(df:pd.DataFrame, ax:mp.axes.Axes, gender:str="F")-> ResultV
         values = by_age["sesso_femminile" if gender == "F" else ("sesso_maschile" if gender == "M" else "totals")]
         labels = by_age["fascia_anagrafica"]
         ax.pie(values, labels=labels,  autopct='%1.1f%%', colors=colors)
+        ax.set_title("Distribuzione per eta'", fontsize=18)
     
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
