@@ -5,6 +5,7 @@ import csv
 import json
 import codecs
 import locale
+from matplotlib import colors
 import requests
 import datetime as dt
 import argparse
@@ -89,6 +90,26 @@ def chart_vaccinations_male_female(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultVal
     log.info(" <<")
     return ResultOk(True)
 
+def chart_vaccinations_fornitore(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultValue :
+    log = logging.getLogger('chart_vaccinations_fornitore')
+    log.info(" >>")
+    try:
+        by_company = df.groupby(["fornitore"]).sum()
+        by_company["totals"] = by_company["sesso_maschile"] + by_company["sesso_femminile"]
+        by_company.reset_index(level=0, inplace=True)
+
+        values = by_company["totals"]
+        labels = by_company["fornitore"]
+        ax.pie(values, labels=labels, colors=["#dfeef4", "#c2e7f6", "#7fd2f3"], autopct='%1.1f%%')
+        ax.set_title("Distribuzione per fornitore", fontsize=18)
+        
+    except Exception as ex:
+        log.error("Exception caught - {ex}".format(ex=ex))
+        return ResultKo(ex)
+    log.info(" <<")
+    return ResultOk(True)
+
+
 def age_distribution(df:pd.DataFrame, ax:mp.axes.Axes, gender:str="F")-> ResultValue :
     log = logging.getLogger('age_distribution')
     log.info(" >>")
@@ -117,7 +138,7 @@ def age_distribution(df:pd.DataFrame, ax:mp.axes.Axes, gender:str="F")-> ResultV
 def main( args:argparse.Namespace ) -> ResultValue :
     log = logging.getLogger('Main')
     log.info(" >>")
-    #rv:ResultValue = ResultKo(Exception("Error"))
+    rv:ResultValue = ResultKo(Exception("Error"))
     try:
         if args.download == True:
             today = dt.datetime.now().strftime("%Y%m%d")
