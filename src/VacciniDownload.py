@@ -5,7 +5,6 @@ import csv
 import json
 import codecs
 import locale
-from matplotlib import colors
 import requests
 import datetime as dt
 import argparse
@@ -19,6 +18,7 @@ import pandas as pd# type: ignore
 
 import matplotlib as mp                 # type: ignore
 from matplotlib import pyplot as plt    # type: ignore
+from matplotlib import colors           # type: ignore
 import matplotlib.dates as mdates       # type: ignore
 import matplotlib.gridspec as gridspec  # type: ignore
 import matplotlib.ticker as mticker     # type: ignore
@@ -64,6 +64,8 @@ def create_dataframe(data_file:str)-> ResultValue:
         df = pd.read_csv(data_file, sep=','
                         ,parse_dates=["data_somministrazione"])
 
+        df["totali"] = df["sesso_maschile"] + df["sesso_femminile"]
+
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
         return ResultKo(ex)
@@ -90,6 +92,38 @@ def chart_vaccinations_male_female(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultVal
     log.info(" <<")
     return ResultOk(True)
 
+def plot_vaccinations_by_time(df:pd.DataFrame, ax:mp.axes.Axes, wich:str="first")-> ResultValue :
+    log = logging.getLogger('plot_vaccinations_by_time')
+    log.info(" >>")
+    try:
+        grp_by_time = df.groupby("data_somministrazione").sum()
+        x = grp_by_time.index.values
+        y = grp_by_time["prima_dose"]
+
+        set_axes_common_properties(ax, no_grid=False)
+
+        ax.get_yaxis().set_major_formatter(mp.ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
+
+        remove_tick_lines('x', ax)
+        remove_tick_lines('y', ax)
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(x, rotation=80)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m/%y"))
+        ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d/%m"))
+        ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))
+        ax.set_ylabel("Numero", fontsize=14)
+        ax.set_xlabel("Data", fontsize=14)
+        ax.set_title("Vaccinazioni nel tempo", fontsize=18)
+        ax.scatter(x, y, color="#b9290a", s=30, marker='.')
+        ax.plot(x, y, 'b-', linewidth=2, color="#f09352", label="Dosi giornaliere")
+
+    except Exception as ex:
+        log.error("Exception caught - {ex}".format(ex=ex))
+        return ResultKo(ex)
+    log.info(" <<")
+    return ResultOk(True)
+
 def chart_vaccinations_fornitore(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultValue :
     log = logging.getLogger('chart_vaccinations_fornitore')
     log.info(" >>")
@@ -108,7 +142,6 @@ def chart_vaccinations_fornitore(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultValue
         return ResultKo(ex)
     log.info(" <<")
     return ResultOk(True)
-
 
 def age_distribution(df:pd.DataFrame, ax:mp.axes.Axes, gender:str="F")-> ResultValue :
     log = logging.getLogger('age_distribution')
@@ -165,8 +198,9 @@ def main( args:argparse.Namespace ) -> ResultValue :
                 log.error(rv.value())
             else:
                 df = rv.value()
-                mask_region = df["nome_area"] == "Lombardia"
-                df_region = df.loc[mask_region,["data_somministrazione","nome_area","fornitore","sesso_maschile","sesso_femminile","fascia_anagrafica"]]
+                region_name = "Lombardia"
+                mask_region = (df["nome_area"] == region_name)
+                df_region = df.loc[mask_region, ["data_somministrazione", "totali", 'fascia_anagrafica', "sesso_maschile","sesso_femminile", "fornitore", "prima_dose", "seconda_dose"]]
 
                 fig = plt.figure(figsize=(20, 10))
                 gs1 = gridspec.GridSpec(1, 1
@@ -177,7 +211,7 @@ def main( args:argparse.Namespace ) -> ResultValue :
                 ax.append(fig.add_subplot(gs1[0,0]))
                 idx = 0
 
-                age_distribution(df_region, ax=ax[idx])
+                rv = plot_vaccinations_by_time(df_region, ax=ax[idx])
 
                 plt.savefig(os.path.join(os.sep, "tmp", "vaccini_fig.png")
                                         ,bbox_inches = 'tight'
