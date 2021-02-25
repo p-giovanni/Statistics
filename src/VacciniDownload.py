@@ -96,9 +96,15 @@ def plot_vaccinations_by_time(df:pd.DataFrame, ax:mp.axes.Axes, wich:str="first"
     log = logging.getLogger('plot_vaccinations_by_time')
     log.info(" >>")
     try:
+        ln_one_color = "#92b7e9"
+        ln_two_color = "#9992e9"
+        ln_one_label = "Cumulata numero vaccinazioni"
+        ln_two_label = "Distribuzione giornaliera"
+
         grp_by_time = df.groupby("data_somministrazione").sum()
         x = grp_by_time.index.values
         y = grp_by_time["prima_dose"]
+        y_cum_sum = grp_by_time["prima_dose"].cumsum()
 
         set_axes_common_properties(ax, no_grid=False)
 
@@ -112,11 +118,32 @@ def plot_vaccinations_by_time(df:pd.DataFrame, ax:mp.axes.Axes, wich:str="first"
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m/%y"))
         ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d/%m"))
         ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))
-        ax.set_ylabel("Numero", fontsize=14)
+        ax.set_ylabel(ln_one_label, fontsize=14)
         ax.set_xlabel("Data", fontsize=14)
-        ax.set_title("Vaccinazioni nel tempo", fontsize=18)
-        ax.scatter(x, y, color="#b9290a", s=30, marker='.')
-        ax.plot(x, y, 'b-', linewidth=2, color="#f09352", label="Dosi giornaliere")
+        ax.set_title("Vaccinazioni nel tempo - prima dose", fontsize=18)
+        ax.tick_params(axis='y', colors=ln_one_color)
+        ax.yaxis.label.set_color(ln_one_color)
+
+        ax.scatter(x, y_cum_sum, color=ln_one_color, s=30, marker='.')
+        ln_one = ax.plot(x, y_cum_sum, 'b-', linewidth=2, color=ln_one_color, label="Dosi - somma")
+
+        ax_dec = ax.twinx()
+        
+        remove_tick_lines('y', ax_dec)
+        remove_tick_lines('x', ax_dec)
+
+        set_axes_common_properties(ax_dec, no_grid=True)
+        
+        ax_dec.scatter(x, y, color=ln_two_color, s=30, marker='.')
+        ln_two = ax_dec.plot(x, y, 'b-', linewidth=2, color=ln_two_color, label=ln_two_label)
+        
+        ax_dec.set_ylabel(ln_two_label, fontsize=14)
+        ax_dec.yaxis.label.set_color(ln_two_color)
+        ax_dec.tick_params(axis='y', colors=ln_two_color)
+
+        lns = ln_one+ln_two
+        labs = [l.get_label() for l in lns]
+        ax.legend(lns, labs, loc='upper left')
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
