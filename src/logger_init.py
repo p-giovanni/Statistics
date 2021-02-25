@@ -34,6 +34,6 @@ def init_logger(log_dir:str, file_name:str, log_level, std_out_log_level=logging
     ch.setFormatter(formatter)
     root.addHandler(ch)
 
-    for _ in ("urllib3", "matplotlib", "chardet"):
+    for _ in ("urllib3", "urllib3.connectionpool", "matplotlib", "chardet"):
         logging.getLogger(_).setLevel(logging.CRITICAL)
 
