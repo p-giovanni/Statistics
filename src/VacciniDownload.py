@@ -96,8 +96,8 @@ def plot_vaccinations_by_time(df:pd.DataFrame, ax:mp.axes.Axes, wich:str="first"
     log = logging.getLogger('plot_vaccinations_by_time')
     log.info(" >>")
     try:
-        ln_one_color = "#92b7e9"
-        ln_two_color = "#9992e9"
+        ln_one_color = "#9992e9"
+        ln_two_color = "#92b7e9"
         ln_one_label = "Cumulata numero vaccinazioni"
         ln_two_label = "Distribuzione giornaliera"
 
