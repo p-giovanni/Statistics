@@ -22,39 +22,11 @@ import numpy as np          # type: ignore
 
 from result_value import ResultKo, ResultOk, ResultValue
 
+from logger_init import init_logger
+
 # ----------------------------------------
 ok_statuses = [200, 201, 202]
 # ----------------------------------------
-# init_logger
-# ----------------------------------------
-def init_logger(log_dir:str, file_name:str, log_level, std_out_log_level=logging.ERROR) -> None :
-    """
-    Logger initializzation for file logging and stdout logging with
-    different level.
-
-    :param log_dir: path for the logfile;
-    :param log_level: logging level for the file logger;
-    :param std_out_log_level: logging level for the stdout logger;
-    :return:
-    """
-    root = logging.getLogger()
-    dap_format = '%(asctime)s %(levelname)s %(name)s %(message)s'
-    formatter = logging.Formatter(dap_format)
-    # File logger.
-    root.setLevel(logging.DEBUG)
-    fh = RotatingFileHandler(os.path.join(log_dir, file_name), maxBytes=1000000, backupCount=5)
-    fh.setLevel(log_level)
-    fh.setFormatter(formatter)
-    root.addHandler(fh)
-
-    # Stdout logger.
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(std_out_log_level)
-    ch.setFormatter(formatter)
-    root.addHandler(ch)
-
-    for _ in ("urllib3"):
-        logging.getLogger(_).setLevel(logging.CRITICAL)
 
 def get_web_file(url:str) -> ResultValue :
     log = logging.getLogger('get_web_file')
@@ -398,50 +370,60 @@ def main( args:argparse.Namespace ) -> bool:
     log.info(" >>")
     rv:ResultValue = ResultKo(Exception("Error"))
     try:
-        begin_dt = dt.datetime.strptime(args.date_begin,'%d/%m/%Y')
-        end_dt = dt.datetime.strptime(args.date_end,'%d/%m/%Y')
-        if end_dt < begin_dt:
-            log.error("Wrong date range: {b} < {e}".format(b=begin_dt, e=end_dt))
-            return False
+        date_format = '%d/%m/%Y'
+        data_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__))
+                                     ,".."
+                                     ,"data", "reduced_report_data.csv")
+        if args.date_range is not None:
+            begin_dt = dt.datetime.strptime(args.date_range[0], date_format)
+            end_dt   = dt.datetime.strptime(args.date_range[1], date_format)
+            if end_dt < begin_dt:
+                log.error("Wrong date range: {b} < {e}".format(b=begin_dt, e=end_dt))
+                return False
 
-        columns_report_charts = ["REPORT DATE","Regione"
-                                ,"Ricoverati con sintomi","Terapia intensiva","Totale attualmente positivi"
-                                ,"DECEDUTI"
-                                ,"Isolamento domiciliare"
-                                ,"CASI TOTALI - A"
-                                ,"Totale tamponi effettuati"
-                                ,"SCHEMA VERSION"]
-        temp_content_dir = os.path.join(os.sep, 'tmp') 
-        rv = load_date_range_reports(begin=begin_dt
-                                        ,to=end_dt
-                                        ,context={
-                                            "temp_dir": temp_content_dir
-                                           ,"data file": os.path.join(os.path.dirname(os.path.realpath(__file__))
-                                                                     ,".."
-                                                                     ,"data", "reduced_report_data.csv")
-                                           ,"columns":columns_report_charts
-                                           ,"save": True
-                                           ,"sort column": "REPORT DATE"
-                                        })
-        
-#            columns_all = ["Regione","Ricoverati con sintomi","Terapia intensiva","Isolamento domiciliare"
-#                       ,"Totale attualmente positivi","DIMESSI/GUARITI","DECEDUTI","CASI TOTALI - A"
-#                       ,"INCREMENTO CASI TOTALI (rispetto al giorno precedente)","Casi identificatidal sospettodiagnostico"
-#                       ,"Casi identificatida attività discreening","CASI TOTALI - B"
-#                       ,"Totale casi testati","Totale tamponi effettuati","INCREMENTOTAMPONI","REPORT DATE"]
+            columns_report_charts = ["REPORT DATE","Regione"
+                                    ,"Ricoverati con sintomi","Terapia intensiva","Totale attualmente positivi"
+                                    ,"DECEDUTI"
+                                    ,"Isolamento domiciliare"
+                                    ,"CASI TOTALI - A"
+                                    ,"Totale tamponi effettuati"
+                                    ,"SCHEMA VERSION"]
+            temp_content_dir = os.path.join(os.sep, 'tmp') 
+            rv = load_date_range_reports(begin=begin_dt
+                                            ,to=end_dt
+                                            ,context={
+                                                "temp_dir": temp_content_dir
+                                               ,"data file": data_file_name
+                                               ,"columns":columns_report_charts
+                                               ,"save": True
+                                               ,"sort column": "REPORT DATE"
+                                            })
+            rv = ResultOk(True)
+
+        elif args.get_date_range is not None and args.get_date_range == True:
+            df = pd.read_csv(data_file_name, sep=',')
+            msg = "Data minima: {dmin} - data massima: {dmax} - numero righe: {nr}".format(nr=df.shape
+                                                                                          ,dmin=df["REPORT DATE"].min()
+                                                                                          ,dmax=df["REPORT DATE"].max())
+            print(msg)
+            log.info(msg)                                                                                          
+            rv = ResultOk(True)
+        else:
+            msg = "Nothing to do!"
+            rv = ResultOk(True)
  
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
         return False
-    log.info(" ({rv}) <<".format(rv=rv.is_ok()))
-    return rv.is_in_error()
+    log.info(" (Is ok: {rv}) <<".format(rv=rv.is_ok()))
+    return rv.is_ok()
 
 if __name__ == "__main__":
     init_logger('/tmp', "virus.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
     
     parser = argparse.ArgumentParser()
-    parser.add_argument("date_begin", help="First report date to download.")
-    parser.add_argument("date_end", help="Last report date to download.")
+    parser.add_argument("--date_range", "-dr", nargs=2, help="Date range of reports to download (dd/mm/yyyy).")
+    parser.add_argument("--get_date_range", "-gdr", action='store_true', help="Returns the first and last date in the data file.")
     args = parser.parse_args()
     
     rv = main(args)

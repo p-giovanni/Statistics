@@ -10,7 +10,15 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/DataDownloader.py",
             "console": "integratedTerminal",
-            "args": ["XX/01/2021", "YY/01/2021"]
+            "args": ["--date_range", "XX/01/2021", "YY/01/2021"]
+        },
+        {
+            "name": "Date Range",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/DataDownloader.py",
+            "console": "integratedTerminal",
+            "args": ["--get_date_range"]
         },
         {
             "name": "ETL",

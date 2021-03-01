@@ -5,4 +5,4 @@ SCRIPT_PATH=./src/DataDownloader.py
 source ${VIRTUALENV}
 
 
-python ${SCRIPT_PATH} $1 $2
+python ${SCRIPT_PATH} $1 $2 $3 $4
