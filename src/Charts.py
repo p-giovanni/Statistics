@@ -77,7 +77,7 @@ def chart_single_line(x:pd.Series, y:pd.Series, context:dict)-> ResultValue :
         log.error("Exception caught - {ex}".format(ex=ex))
         return ResultKo(ex)
     log.info(" <<")
-    return ResultOk(True)
+    return ResultOk(plt)
 
 def chart_composite(x:pd.Series, y_one:pd.Series, y_two:pd.Series, region_name:str)-> ResultValue :
     log = logging.getLogger('chart_composite')
@@ -139,7 +139,7 @@ def chart_composite(x:pd.Series, y_one:pd.Series, y_two:pd.Series, region_name:s
         log.error("Exception caught - {ex}".format(ex=ex))
         return ResultKo(ex)
     log.info(" <<")
-    return ResultOk(True)
+    return ResultOk(plt)
 
 def main( args:argparse.Namespace ) -> ResultValue :
     log = logging.getLogger('Main')
