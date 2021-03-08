@@ -22,11 +22,18 @@ See this chart: [weekly mortality rate](./images/MortalityRate-DailyDeaths.png).
 ! Doing
 ```
 ## Notebooks
+- [CoronaVirus](notebook/Charts.ipynb): produces the model chart and various other charts about the Italian and Lombardy COVID-19 virus spread;
+- [Vaccinations](notebook/VaccinazioniData.ipynb): charts about the covid19 vaccination spread;
 
-- [CoronaVirus](notebook/CoronaVirus.ipynb): produces the model chart and various other charts about the Italian and Lombardy COVID-19 virus spread;
-- [CoronaVirus-SecondaryCharts](notebook/CoronaVirus-SecondaryCharts.ipynb): comparative charts on various datasets;
-- [DataDownloader](notebook/DataDownloader.ipynb): download the datasets from [www.salute.gov.it](http://www.salute.gov.it/portale/news/p3_2_Mobile.html);  
-- [MortalitaGiornaliera](notebook/MortalitaGiornaliera.ipynb): comparative charts on the [Istat](https://www.istat.it/) daily deaths rate;
+## Sources
+In the notebook are called procedures that can be found into the src directory.
+- [result_value.py](src/result_value.py)
+- [logger_init.py](src/logger_init.py)
+- [VacciniDownload.py](src/VacciniDownload.py)
+- [ETL.py](src/ETL.py)
+- [DataDownloader.py](src/DataDownloader.py)
+- [Charts.py](src/Charts.py)
+- [ChartTools.py](src/ChartTools.py)
 
 ## Disclaimer
 I do know very well Pandas, Matplotlib and I had a fairly good education in statistics but, as all the programmers, I do bugs.
