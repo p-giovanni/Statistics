@@ -66,7 +66,7 @@ def chart_single_line(x:pd.Series, y:pd.Series, context:dict)-> ResultValue :
         ax[idx].plot(x, y, 'b-', linewidth=2, color="#f09352")
         if context.get('dad begin date') is not None:
             ax[idx].axvline(context.get('dad begin date'), color="#048f9e")     
-            ax[idx].text(0.65, 0.25, 'Inizio dad scuole superiori'
+            ax[idx].text(0.55, 0.25, 'Inizio dad scuole superiori'
                          ,horizontalalignment='center', verticalalignment='center'
                          ,transform=ax[idx].transAxes
                          ,rotation=90
