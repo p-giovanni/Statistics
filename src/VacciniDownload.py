@@ -5,11 +5,10 @@ import csv
 import json
 import codecs
 import locale
+import logging
 import requests
 import datetime as dt
 import argparse
-
-import logging
 
 from typing import Union, Optional, Tuple, List, cast
 
