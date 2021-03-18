@@ -1,6 +1,6 @@
 #!/bin/bash
 
-usage="Usage: run-data-downloader.sh [data|vac|etl]"
+usage="Usage: run-data-downloader.sh [data|vac|vacd|etl]"
 
 VIRTUALENV=/home/giovanni/add-on/venv/bin/activate
 source ${VIRTUALENV}
@@ -20,7 +20,11 @@ etl)
   ;;
 vac)
   echo "Download vaccination dataset."
-  python ${VAC_SCRIPT_PATH} --download
+  python ${VAC_SCRIPT_PATH} --download_vaccinazioni
+  ;;
+vacd)
+  echo "Download delivered vaccins dataset."
+  python ${VAC_SCRIPT_PATH} --download_consegne
   ;;
 help|h)
   echo $usage
