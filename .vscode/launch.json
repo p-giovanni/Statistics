@@ -29,12 +29,20 @@
             "args": [ ]
         },
         {
-            "name": "Vaccini Download",
+            "name": "Vaccini Performed Download",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/VacciniDownload.py",
             "console": "integratedTerminal",
-            "args": ["--download"]
+            "args": ["--download_vaccinazioni"]
+        },
+        {
+            "name": "Vaccini Delivered Download",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/VacciniDownload.py",
+            "console": "integratedTerminal",
+            "args": ["--download_consegne"]
         },
         {
             "name": "Vaccini Chart",

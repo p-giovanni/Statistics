@@ -71,6 +71,19 @@ def create_dataframe(data_file:str)-> ResultValue:
     log.info(" <<")
     return ResultOk(df)
 
+def create_delivered_dataframe(data_file:str)-> ResultValue:
+    log = logging.getLogger('create_delivered_dataframe')
+    log.info(" >>")
+    try:
+        df = pd.read_csv(data_file, sep=','
+                        ,parse_dates=["data_consegna"])
+
+    except Exception as ex:
+        log.error("Exception caught - {ex}".format(ex=ex))
+        return ResultKo(ex)
+    log.info(" <<")
+    return ResultOk(df)
+
 def chart_vaccinations_male_female(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultValue :
     log = logging.getLogger('chart_vaccinations_male_female')
     log.info(" >>")
@@ -116,7 +129,7 @@ def plot_vaccinations_by_time(df:pd.DataFrame, ax:mp.axes.Axes, wich:str="first"
         ax.set_xticklabels(x, rotation=80)
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m/%y"))
         ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d/%m"))
-        ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))
+        ax.xaxis.set_major_locator(mdates.DayLocator(interval=2))
         ax.set_ylabel(ln_one_label, fontsize=14)
         ax.set_xlabel("Data", fontsize=14)
         ax.set_title("Vaccinazioni nel tempo - prima dose", fontsize=18)
@@ -193,27 +206,32 @@ def age_distribution(df:pd.DataFrame, ax:mp.axes.Axes, gender:str="F")-> ResultV
         return ResultKo(ex)
     log.info(" <<")
     return ResultOk(True)
-
+#
 def main( args:argparse.Namespace ) -> ResultValue :
     log = logging.getLogger('Main')
     log.info(" >>")
     rv:ResultValue = ResultKo(Exception("Error"))
     try:
-        if args.download == True:
-            today = dt.datetime.now().strftime("%Y%m%d")
+        today = dt.datetime.now().strftime("%Y%m%d")
+            
+        if args.download_vaccinazioni == True:
+            file_name = "{dt}_vaccinazioni.csv".format(dt=today)
+            url = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.csv"
+        if args.download_consegne == True:
+            file_name = "{dt}_vaccini_consegnati.csv".format(dt=today)
+            url = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/consegne-vaccini-latest.csv"
+
+        if args.download_vaccinazioni == True or args.download_consegne == True:
             data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
                                                     ,".."
-                                                    ,"data", "{dt}_vaccinazioni.csv".format(dt=today))
-            url = "https://raw.githubusercontent.com/italia/covid19-opendata-vaccini/master/dati/somministrazioni-vaccini-latest.csv"
+                                                    ,"data", file_name)
             rv = download_csv_file(url=url, data_file=data_file)
             if rv.is_in_error():
                 msg = "Data download error: {e}".format(e=rv.value)
                 log.error(msg)
-                print(msg)
             else:
                 msg = "Data downloaded."
                 log.info(msg)
-                print(msg)
 
         if args.chart == True:
             data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
@@ -253,7 +271,8 @@ if __name__ == "__main__":
     init_logger('/tmp', "vaccini.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--download", "-d", action='store_true', help="Data download.")
+    parser.add_argument("--download_vaccinazioni", "-dv", action='store_true', help="Download performed vaccinations file.")
+    parser.add_argument("--download_consegne", "-dc", action='store_true', help="Download vaccines delivery.")
     parser.add_argument("--chart",    "-c", action='store_true', help="Chart.")
     args = parser.parse_args()
     
