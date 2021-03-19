@@ -1,9 +1,5 @@
 import os
-import re
 import sys
-import csv
-import json
-import codecs
 import locale
 import logging
 import requests
@@ -182,6 +178,32 @@ def chart_vaccinations_fornitore(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultValue
     log.info(" <<")
     return ResultOk(True)
 
+def company_distribution(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultValue :
+    log = logging.getLogger('company_distribution')
+    log.info(" >>")
+    try:
+        def autopct_format(values):
+            def my_format(pct):
+                total = sum(values)
+                val = int(round(pct*total/100.0))
+                str_val = f'{val:n}'
+                return '{v:d}'.format(v=val)
+            return my_format
+
+        colors = ["#9aff33","#34ff33","#33ff98","#33fffe","#339aff","#3371ff","#5b33ff","#c133ff","#ff33d7"]
+        by_company = df.groupby(["fornitore"]).sum()
+        by_company.reset_index(level=0, inplace=True)
+        values = by_company["numero_dosi"]
+        labels = by_company["fornitore"]
+        ax.pie(values, labels=labels, colors=colors, autopct = autopct_format(values))
+        ax.set_title("Vaccini consegnati", fontsize=18)
+
+    except Exception as ex:
+        log.error("Exception caught - {ex}".format(ex=ex))
+        return ResultKo(ex)
+    log.info(" <<")
+    return ResultOk(True)
+
 def age_distribution(df:pd.DataFrame, ax:mp.axes.Axes, gender:str="F")-> ResultValue :
     log = logging.getLogger('age_distribution')
     log.info(" >>")
@@ -240,26 +262,40 @@ def main( args:argparse.Namespace ) -> ResultValue :
             rv = create_dataframe(data_file=data_file)
             if rv.is_in_error():
                 log.error(rv.value())
-            else:
-                df = rv.value()
-                region_name = "Lombardia"
-                mask_region = (df["nome_area"] == region_name)
-                df_region = df.loc[mask_region, ["data_somministrazione", "totali", 'fascia_anagrafica', "sesso_maschile","sesso_femminile", "fornitore", "prima_dose", "seconda_dose"]]
+                return ResultKo(rv())
+            df = rv.value()
 
-                fig = plt.figure(figsize=(20, 10))
-                gs1 = gridspec.GridSpec(1, 1
-                           ,hspace=0.2
-                           ,wspace=0.1 
-                           ,figure=fig)
-                ax = []
-                ax.append(fig.add_subplot(gs1[0,0]))
-                idx = 0
+            data_file = os.path.join(os.path.dirname(os.path.realpath(__file__))
+                                                    ,".."
+                                                    ,"data", "vaccini_consegnati.csv")
+            rv = create_delivered_dataframe(data_file=data_file)
+            if rv.is_in_error():
+                log.error(rv.value())
+                return ResultKo(rv())
+            df_delivered = rv()
 
-                rv = plot_vaccinations_by_time(df_region, ax=ax[idx])
+            region_name = "Lombardia"
+            mask_region = (df["nome_area"] == region_name)
+            df_region = df.loc[mask_region, ["data_somministrazione", "totali", 'fascia_anagrafica', "sesso_maschile","sesso_femminile", "fornitore", "prima_dose", "seconda_dose"]]
 
-                plt.savefig(os.path.join(os.sep, "tmp", "vaccini_fig.png")
-                                        ,bbox_inches = 'tight'
-                                        ,pad_inches = 0.2)
+            mask_region = (df_delivered["nome_area"] == region_name)
+            df_delivered_region = df_delivered.loc[mask_region, ["fornitore","numero_dosi"]]
+
+
+            fig = plt.figure(figsize=(20, 10))
+            gs1 = gridspec.GridSpec(1, 1
+                       ,hspace=0.2
+                       ,wspace=0.1 
+                       ,figure=fig)
+            ax = []
+            ax.append(fig.add_subplot(gs1[0,0]))
+            idx = 0
+                  
+            result = company_distribution(df_delivered_region, ax=ax[idx])
+               
+            plt.savefig(os.path.join(os.sep, "tmp", "vaccini_fig.png")
+                                    ,bbox_inches = 'tight'
+                                    ,pad_inches = 0.2)
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))

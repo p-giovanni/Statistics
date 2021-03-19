@@ -12,7 +12,7 @@ ETL_SCRIPT_PATH=./src/ETL.py
 case $1 in
 data)
   echo "Download regional COVID19 data."
-  python ${DATA_SCRIPT_PATH} $2 $3 $4 $5
+  python ${DATA_SCRIPT_PATH} --date_range $2 $3 $4 $5
   ;;
 etl)
   echo "Run etl."
@@ -30,8 +30,8 @@ help|h)
   echo $usage
   ;;
 *)
-  echo "Download regional COVID19 data."
-  python ${DATA_SCRIPT_PATH} $1 $2 $3 $4
+  echo "Get actual data range."
+  python ${DATA_SCRIPT_PATH} --get_date_range
   ;;
 esac
 
