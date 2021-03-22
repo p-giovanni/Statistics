@@ -17,6 +17,7 @@ from matplotlib import colors           # type: ignore
 import matplotlib.dates as mdates       # type: ignore
 import matplotlib.gridspec as gridspec  # type: ignore
 import matplotlib.ticker as mticker     # type: ignore
+import matplotlib.patches as mpatches   # type: ignore
 
 from typing import Any, Tuple, Dict, Union
 
@@ -102,11 +103,11 @@ def chart_vaccinations_male_female(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultVal
     log.info(" <<")
     return ResultOk(True)
 
-def plot_vaccinations_by_time(df:pd.DataFrame, ax:mp.axes.Axes, wich:str="first")-> ResultValue :
+def plot_vaccinations_by_time(df:pd.DataFrame, df_delivered:pd.DataFrame, ax:mp.axes.Axes, wich:str="first")-> ResultValue :
     log = logging.getLogger('plot_vaccinations_by_time')
     log.info(" >>")
     try:
-        ln_one_color = "#9992e9"
+        ln_one_color = "#2A9EDE"
         ln_two_color = "#92b7e9"
         ln_one_label = "Cumulata numero vaccinazioni"
         ln_two_label = "Distribuzione giornaliera"
@@ -134,7 +135,13 @@ def plot_vaccinations_by_time(df:pd.DataFrame, ax:mp.axes.Axes, wich:str="first"
         ax.yaxis.label.set_color(ln_one_color)
         
         ax.scatter(x, y_cum_sum, color=ln_one_color, s=30, marker='.')
-        ln_one = ax.plot(x, y_cum_sum, 'b-', linewidth=2, color=ln_one_color, label="Dosi - somma")
+        ln_one = ax.plot(x, y_cum_sum, 'b-', linewidth=2, color=ln_one_color, label=ln_one_label)
+
+        result = plot_delivered_vaccines_quantity(df_delivered, ax)
+        if result.is_in_error() == True:
+            log.error(result())
+            return result
+        line_three = result()
 
         ax_dec = ax.twinx()
         
@@ -150,7 +157,7 @@ def plot_vaccinations_by_time(df:pd.DataFrame, ax:mp.axes.Axes, wich:str="first"
         ax_dec.yaxis.label.set_color(ln_two_color)
         ax_dec.tick_params(axis='y', colors=ln_two_color)
 
-        lns = ln_one+ln_two
+        lns = ln_one+ln_two+line_three
         labs = [l.get_label() for l in lns]
         ax.legend(lns, labs, loc='upper left')
 
@@ -161,30 +168,42 @@ def plot_vaccinations_by_time(df:pd.DataFrame, ax:mp.axes.Axes, wich:str="first"
     return ResultOk(True)
 
 def plot_delivered_vaccines_quantity(df_delivered:pd.DataFrame, ax:mp.axes.Axes)-> ResultValue :
-    log = logging.getLogger('plot_vaccinations_by_time')
+    log = logging.getLogger('plot_delivered_vaccines_quantity')
     log.info(" >>")
-    width = 1.2
-    bar_space = width/3
+    rv:ResultValue = ResultKo(Exception("Error"))
     try:
+        line_label = "Dosi consegnate - somma"
+        line_color = "#F58674"
+
         df_delivered.sort_values(by="data_consegna", inplace=True)
         by_date = df_delivered.groupby(["data_consegna"]).sum()
         by_date.reset_index(level=0, inplace=True)
-              
+        by_date["cumulata"] = by_date["numero_dosi"].cumsum()
+
         x_del = by_date["data_consegna"]
-        y_del = by_date["numero_dosi"]
+        y_del = by_date["cumulata"]
         
         remove_tick_lines('x', ax)
         remove_tick_lines('y', ax)
         set_axes_common_properties(ax, no_grid=True)
 
-        ax.bar(x_del, y_del, color=colors[4], width=width, label='2020')
+        ax.scatter(x_del, y_del,  s=30, marker='.')
+        line = ax.plot(x_del, y_del, 'b-', linewidth=2, color=line_color, label=line_label)
+
         ax.set_xticklabels(x_del, rotation=80)
+        
+        handles, labels = ax.get_legend_handles_labels()
+        patch = mpatches.Patch(color=line_color, label=line_label)
+        handles.append(patch)
+        plt.legend(handles=handles, loc='upper left')
+
+        rv = ResultOk(line)
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
-        return ResultKo(ex)
+        rv = ResultKo(ex)
     log.info(" <<")
-    return ResultOk(True)
+    return rv
 
 
 def chart_vaccinations_fornitore(df:pd.DataFrame, ax:mp.axes.Axes)-> ResultValue :
@@ -308,7 +327,6 @@ def main( args:argparse.Namespace ) -> ResultValue :
             mask_region = (df_delivered["nome_area"] == region_name)
             df_delivered_region = df_delivered.loc[mask_region, ["fornitore","numero_dosi","data_consegna"]]
 
-
             fig = plt.figure(figsize=(20, 10))
             gs1 = gridspec.GridSpec(1, 1
                        ,hspace=0.2
@@ -318,16 +336,16 @@ def main( args:argparse.Namespace ) -> ResultValue :
             ax.append(fig.add_subplot(gs1[0,0]))
             idx = 0
                   
-            result = plot_delivered_vaccines_quantity(df_delivered_region, ax=ax[idx])
-               
-            plt.savefig(os.path.join(os.sep, "tmp", "vaccini_fig.png")
-                                    ,bbox_inches = 'tight'
-                                    ,pad_inches = 0.2)
+            rv = plot_delivered_vaccines_quantity(df_delivered_region, ax=ax[idx])
+            if rv.is_ok():   
+                plt.savefig(os.path.join(os.sep, "tmp", "vaccini_fig.png")
+                                        ,bbox_inches = 'tight'
+                                        ,pad_inches = 0.2)
 
     except Exception as ex:
         log.error("Exception caught - {ex}".format(ex=ex))
         rv = ResultKo(ex)
-    log.info(" ({rv}) <<".format(rv=rv))
+    log.info(" ({rv}) <<".format(rv=rv.is_ok()))
     return rv
 
 if __name__ == "__main__":
