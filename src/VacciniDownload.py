@@ -6,10 +6,8 @@ import requests
 import datetime as dt
 import argparse
 
-from typing import Union, Optional, Tuple, List, cast
-
-import numpy as np # type: ignore
-import pandas as pd# type: ignore 
+import numpy as  np   # type: ignore
+import pandas as pd   # type: ignore 
 
 import matplotlib as mp                 # type: ignore
 from matplotlib import pyplot as plt    # type: ignore
@@ -18,8 +16,6 @@ import matplotlib.dates as mdates       # type: ignore
 import matplotlib.gridspec as gridspec  # type: ignore
 import matplotlib.ticker as mticker     # type: ignore
 import matplotlib.patches as mpatches   # type: ignore
-
-from typing import Any, Tuple, Dict, Union
 
 from logger_init import init_logger
 from result_value import ResultKo, ResultOk, ResultValue
