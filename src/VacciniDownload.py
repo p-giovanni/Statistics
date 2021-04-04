@@ -103,7 +103,7 @@ def plot_vaccinations_by_time(df:pd.DataFrame, df_delivered:pd.DataFrame, ax:mp.
     log = logging.getLogger('plot_vaccinations_by_time')
     log.info(" >>")
     try:
-        ln_one_color = "#2A9EDE"
+        ln_one_color = "#f08814"
         ln_two_color = "#92b7e9"
         ln_one_label = "Cumulata numero vaccinazioni"
         ln_two_label = "Distribuzione giornaliera"
@@ -169,7 +169,7 @@ def plot_delivered_vaccines_quantity(df_delivered:pd.DataFrame, ax:mp.axes.Axes)
     rv:ResultValue = ResultKo(Exception("Error"))
     try:
         line_label = "Dosi consegnate - somma"
-        line_color = "#F58674"
+        line_color = "#ff5733"
 
         df_delivered.sort_values(by="data_consegna", inplace=True)
         by_date = df_delivered.groupby(["data_consegna"]).sum()
