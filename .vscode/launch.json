@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Downloader",
+            "name": "VIRUS - Downloader",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/DataDownloader.py",
@@ -13,7 +13,7 @@
             "args": ["--date_range", "XX/01/2021", "YY/01/2021"]
         },
         {
-            "name": "Date Range",
+            "name": "VIRUS - Date Range",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/DataDownloader.py",
@@ -21,7 +21,7 @@
             "args": ["--get_date_range"]
         },
         {
-            "name": "ETL",
+            "name": "VIRUS - ETL",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/ETL.py",
@@ -29,7 +29,7 @@
             "args": [ ]
         },
         {
-            "name": "Vaccini Performed Download",
+            "name": "VIRUS - Vaccini Performed Download",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/VacciniDownload.py",
@@ -37,7 +37,7 @@
             "args": ["--download_vaccinazioni"]
         },
         {
-            "name": "Vaccini Delivered Download",
+            "name": "VIRUS - Vaccini Delivered Download",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/VacciniDownload.py",
@@ -45,7 +45,7 @@
             "args": ["--download_consegne"]
         },
         {
-            "name": "Vaccini Chart",
+            "name": "VIRUS - Vaccini Chart",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/VacciniDownload.py",

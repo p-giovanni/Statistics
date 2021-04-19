@@ -77,7 +77,7 @@ def save_data_file(df:pd.DataFrame
 
 def calculate_daily_diffs(df:pd.DataFrame, in_col:str, out_col:str)-> ResultValue :
     log = logging.getLogger('calculate_daily_diffs')
-    log.info(" >>")
+    log.info("({oc}) >>".format(oc=out_col))
     try:
         regions_list = df["Regione"].unique()
         for region in regions_list:
