@@ -419,7 +419,7 @@ def main( args:argparse.Namespace ) -> bool:
     return rv.is_ok()
 
 if __name__ == "__main__":
-    init_logger('/tmp', "virus.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
+    init_logger('/Users/ERIZZAG5J/Work/tmp', "virus.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
     
     parser = argparse.ArgumentParser()
     parser.add_argument("--date_range", "-dr", nargs=2, help="Date range of reports to download (dd/mm/yyyy).")

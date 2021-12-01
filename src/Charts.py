@@ -66,13 +66,13 @@ def chart_single_line(x:pd.Series, y:pd.Series, context:dict)-> ResultValue :
         ax[idx].plot(x, y, 'b-', linewidth=2, color="#f09352")
         if context.get('dad begin date') is not None:
             ax[idx].axvline(context.get('dad begin date'), color="#048f9e")     
-            ax[idx].text(0.50, 0.25, 'Inizio dad scuole superiori'
+            ax[idx].text(0.32, 0.25, 'Inizio dad scuole superiori'
                          ,horizontalalignment='center', verticalalignment='center'
                          ,transform=ax[idx].transAxes
                          ,rotation=90
                          ,color="#048f9e", fontsize=12)
             ax[idx].axvline(context.get('school opening date'), color="#048f9e")     
-            ax[idx].text(0.95, 0.25, 'Riapertura scuole'
+            ax[idx].text(0.58, 0.25, 'Riapertura scuole'
                          ,horizontalalignment='center', verticalalignment='center'
                          ,transform=ax[idx].transAxes
                          ,rotation=90
@@ -171,7 +171,7 @@ def main( args:argparse.Namespace ) -> ResultValue :
     return ResultOk(True)
 
 if __name__ == "__main__":
-    init_logger('/tmp', "etl.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
+    init_logger('/Users/ERIZZAG5J/Work/tmp', "etl.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
     
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
