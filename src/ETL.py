@@ -125,7 +125,7 @@ def main( args:argparse.Namespace ) -> ResultValue :
     return rv
 
 if __name__ == "__main__":
-    init_logger('/Users/ERIZZAG5J/Work/tmps', "etl.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
+    init_logger('/Users/ERIZZAG5J/Work/tmp', "etl.log",log_level=logging.DEBUG, std_out_log_level=logging.DEBUG)
     
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
