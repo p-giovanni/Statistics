@@ -57,7 +57,7 @@ def chart_single_line(x:pd.Series, y:pd.Series, context:dict)-> ResultValue :
 
         ax[idx].xaxis.set_major_formatter(mdates.DateFormatter("%d/%m/%y"))
         ax[idx].xaxis.set_minor_formatter(mdates.DateFormatter("%d/%m"))
-        ax[idx].xaxis.set_major_locator(mdates.DayLocator(interval=7))
+        ax[idx].xaxis.set_major_locator(mdates.DayLocator(interval=14))
         ax[idx].set_ylabel("Numero", fontsize=14)
         ax[idx].set_xlabel("Data", fontsize=14)
         ax[idx].set_title("{reg} - {title} ".format(title=title, reg=region_name), fontsize=18)
@@ -112,7 +112,7 @@ def chart_composite(x:pd.Series, y_one:pd.Series, y_two:pd.Series, region_name:s
 
         ax[idx].xaxis.set_major_formatter(mdates.DateFormatter("%d/%m/%y"))
         ax[idx].xaxis.set_minor_formatter(mdates.DateFormatter("%d/%m"))
-        ax[idx].xaxis.set_major_locator(mdates.DayLocator(interval=7))
+        ax[idx].xaxis.set_major_locator(mdates.DayLocator(interval=14))
         ax[idx].set_ylabel("Numero", fontsize=14)
         ax[idx].set_xlabel("Data", fontsize=14)
         ax[idx].set_title("{reg} - {title} ".format(title="Deceduti/Ammalati - totale", reg=region_name), fontsize=18)
