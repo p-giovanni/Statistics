@@ -2,7 +2,7 @@
 
 usage="Usage: run-data-downloader.sh [data|vac|vacd|etl]"
 
-VIRTUALENV=/home/giovanni/add-on/venv/bin/activate
+VIRTUALENV=/Users/ERIZZAG5J/venv/bin/activate
 source ${VIRTUALENV}
 
 DATA_SCRIPT_PATH=./src/DataDownloader.py
