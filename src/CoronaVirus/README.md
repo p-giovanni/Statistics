@@ -4,7 +4,7 @@ This project contains some Jupyter notebooks that create some charts about the C
 The data sets are downloaded, as pdf file, from this site [www.salute.gov.it](http://www.salute.gov.it/portale/news/p3_2.html), transformed to a pandas dataframe and written in a csv file (see [csv data files](./data)).
 
 The results are in this directory:
-  - [images](./images)
+  - [images](./images/CoronaVirus)
 
 A second data source, from [**Istat**](https://www.istat.it/) is the number of daily deaths registered in a set of Italian cities in the years:
 
@@ -42,7 +42,7 @@ code and decide if it it is correct or not.
 
 ## COVID-19 spread charts
 The charts that follow are about the increased deaths due to the covid-19 spread. 
-The most interesting one is, in my opinion, the chart that compares the total deaths in Italy in the years 2018,2019 and 2020. In this it is clear the disaster and the tragedy that my country is living in these months.
+The most interesting one is, in my opinion, the chart that compares the total deaths in Italy in the years 2018,2019 and 2020. 
 ![Hospitalized](./images/MortalityRate-DeathsByAgeClass.png?)
 
 
