@@ -22,8 +22,8 @@ See this chart: [weekly mortality rate](../../images/CoronaVirus/MortalityRate-D
 ! Doing
 ```
 ## Notebooks
-- [CoronaVirus](../notebook/Charts.ipynb): produces the model chart and various other charts about the Italian and Lombardy COVID-19 virus spread;
-- [Vaccinations](../notebook/VaccinazioniData.ipynb): charts about the covid19 vaccination usage in Italy;
+- [CoronaVirus](../../notebook/Charts.ipynb): produces the model chart and various other charts about the Italian and Lombardy COVID-19 virus spread;
+- [Vaccinations](../../notebook/VaccinazioniData.ipynb): charts about the covid19 vaccination usage in Italy;
 
 ## Sources
 In the notebook are called procedures that can be found into the src directory.
